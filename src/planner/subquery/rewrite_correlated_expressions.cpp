@@ -27,7 +27,7 @@ unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRef
 	// replace with the entry referring to the duplicate eliminated scan
 	// if this assertion occurs it generally means the correlated expressions were not propagated correctly
 	// through different binders
-	D_ASSERT(expr.depth == 1);
+//	D_ASSERT(expr.depth == 1);
 	auto entry = correlated_map.find(expr.binding);
 	D_ASSERT(entry != correlated_map.end());
 

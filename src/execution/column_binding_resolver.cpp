@@ -110,13 +110,7 @@ void ColumnBindingResolver::VisitOperator(LogicalOperator &op) {
 
 unique_ptr<Expression> ColumnBindingResolver::VisitReplace(BoundColumnRefExpression &expr,
                                                            unique_ptr<Expression> *expr_ptr) {
-	D_ASSERT(expr.depth == 0);
-	// check the current set of column bindings to see which index corresponds to the column reference
-	for (idx_t i = 0; i < bindings.size(); i++) {
-		if (expr.binding == bindings[i]) {
-			return make_unique<BoundReferenceExpression>(expr.alias, expr.return_type, i);
-		}
-	}
+
 	// LCOV_EXCL_START
 	// could not bind the column reference, this should never happen and indicates a bug in the code
 	// generate an error message
@@ -128,6 +122,21 @@ unique_ptr<Expression> ColumnBindingResolver::VisitReplace(BoundColumnRefExpress
 		bound_columns += to_string(bindings[i].table_index) + "." + to_string(bindings[i].column_index);
 	}
 	bound_columns += "]";
+
+	printf("Column reference \"%s\" [%d.%d] (bindings: %s)\n", expr.alias.c_str(),
+	       expr.binding.table_index, expr.binding.column_index, bound_columns.c_str());
+
+	D_ASSERT(expr.depth == 0);
+	// check the current set of column bindings to see which index corresponds to the column reference
+	for (idx_t i = 0; i < bindings.size(); i++) {
+		if (expr.binding == bindings[i]) {
+			printf("MATCH: Column reference \"%s\" [%d.%d] \n", expr.alias.c_str(),
+			        bindings[i].table_index, bindings[i].column_index);
+			return make_unique<BoundReferenceExpression>(expr.alias, expr.return_type, i);
+		}
+	}
+
+	printf("%s\n", expr.ToString().c_str());
 
 	throw InternalException("Failed to bind column reference \"%s\" [%d.%d] (bindings: %s)", expr.alias,
 	                        expr.binding.table_index, expr.binding.column_index, bound_columns);

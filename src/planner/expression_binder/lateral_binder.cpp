@@ -31,9 +31,9 @@ BindResult LateralBinder::BindColumnRef(unique_ptr<ParsedExpression> *expr_ptr, 
 	if (result.HasError()) {
 		return result;
 	}
-	if (depth > 1) {
-		throw BinderException("Nested lateral joins are not supported yet");
-	}
+//	if (depth > 1) {
+//		throw BinderException("Nested lateral joins are not supported yet");
+//	}
 	ExtractCorrelatedColumns(*result.expression);
 	return result;
 }

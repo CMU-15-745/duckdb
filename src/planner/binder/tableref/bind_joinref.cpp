@@ -126,11 +126,21 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 	auto &right_binder = *result->right_binder;
 
 	result->type = ref.type;
+	printf("START Bind Left\n");
 	result->left = left_binder.Bind(*ref.left);
+	printf("  END Bind Left\n");
 	{
 		LateralBinder binder(left_binder, context);
+		printf("START Bind Right\n");
 		result->right = right_binder.Bind(*ref.right);
+		printf("  END Bind Right\n");
 		result->correlated_columns = binder.ExtractCorrelatedColumns(right_binder);
+
+		printf("Cross Join? %s\n", ref.ref_type == JoinRefType::CROSS ? "true" : "false");
+		for (auto& col : correlated_columns)
+		{
+			printf("Correlated Column: %s at [%d,%d]\n", col.name.c_str(), col.binding.table_index, col.binding.column_index);
+		}
 
 		result->lateral = binder.HasCorrelatedColumns();
 		if (result->lateral) {
@@ -264,10 +274,39 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 
 	auto right_bindings_list_copy = right_binder.bind_context.GetBindingsList();
 
+	printf("\nRight Bindings\n");
+	for (auto& binding : right_bindings_list_copy)
+	{
+		printf("LHS: %s\n", binding.first.c_str());
+		printf("RHS: (");
+		for (auto name : binding.second->names)
+		{
+			printf("%s, ", name.c_str());
+		}
+		printf(")\n\n");
+	}
+
+	printf("\nLEFT CORRELATED COLUMNS\n");
+	for (auto& binding : left_binder.correlated_columns)
+	{
+		printf("Column: %s, Depth: %d, Type: %s at [%d, %d]\n", binding.name.c_str(), binding.depth, binding.type.ToString().c_str(),binding.binding.table_index, binding.binding.column_index);
+	}
+	printf("\n");
+
+	printf("\nRIGHT CORRELATED COLUMNS\n");
+	for (auto& binding : right_binder.correlated_columns)
+	{
+		printf("\nColumn: %s, Depth: %d, Type: %s at [%d, %d]\n", binding.name.c_str(), binding.depth, binding.type.ToString().c_str(), binding.binding.table_index, binding.binding.column_index);
+	}
+	printf("\n");
+
 	bind_context.AddContext(std::move(left_binder.bind_context));
 	bind_context.AddContext(std::move(right_binder.bind_context));
 	MoveCorrelatedExpressions(left_binder);
 	MoveCorrelatedExpressions(right_binder);
+
+
+
 	for (auto &condition : extra_conditions) {
 		if (ref.condition) {
 			ref.condition = make_unique<ConjunctionExpression>(ExpressionType::CONJUNCTION_AND,
