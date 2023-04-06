@@ -8,10 +8,10 @@ SELECT *
            ()) > 1000;
 
 
-SELECT * 
-    FROM (SELECT 42) t(i), 
-         (SELECT * 
-            FROM (SELECT 142 k) t3(k), 
+SELECT *
+    FROM (SELECT 42) t(i),
+         (SELECT *
+            FROM (SELECT 142 k) t3(k),
                  (SELECT k) t4(l)) t2(j);
 
 -- Bind SELECT_STMT;
@@ -34,52 +34,52 @@ WHERE i IN (SELECT * FROM (SELECT 42 k) t3(k)
 
 -- FAIL --
 SELECT *
-     FROM (SELECT 42) t(i),           
-          (SELECT *              
-               FROM (SELECT 142 k) t3(k),           
+     FROM (SELECT 42) t(i),
+          (SELECT *
+               FROM (SELECT 142 k) t3(k),
                     (SELECT 1 WHERE i+k=0) t4(l));
 
 -- SUCCESS --
-SELECT * 
-     FROM (SELECT 42) t1(i), 
-          (SELECT 22) t2(j), 
+SELECT *
+     FROM (SELECT 42) t1(i),
+          (SELECT 22) t2(j),
           (SELECT 1 WHERE i+j=64) t3(l);
 
 -- SUCCESS --
-SELECT * 
-     FROM (SELECT 42) t1(i), 
-          (SELECT 22) t2(j), 
+SELECT *
+     FROM (SELECT 42) t1(i),
+          (SELECT 22) t2(j),
           (SELECT 1 WHERE i=64) t3(l);
 
 -- SUCCESS --
-SELECT * 
-     FROM (SELECT 42) t1(i), 
-          (SELECT 22) t2(j), 
+SELECT *
+     FROM (SELECT 42) t1(i),
+          (SELECT 22) t2(j),
           (SELECT i+j WHERE i+j=64) t3(l);
 
 -- SUCCESS --
-SELECT * 
-     FROM (SELECT 42) t(i), 
-          (SELECT i * 2) t2(j),    
+SELECT *
+     FROM (SELECT 42) t(i),
+          (SELECT i * 2) t2(j),
           (SELECT i + j) t3(k);
 
 -- SUCCESS --
-SELECT * 
-     FROM (SELECT i,j,k 
-          FROM (SELECT 42) t(i), 
-               (SELECT i * 2) t2(j), 
+SELECT *
+     FROM (SELECT i,j,k
+          FROM (SELECT 42) t(i),
+               (SELECT i * 2) t2(j),
                (SELECT i + j) t3(k));
 
 -- SUCCESS --
-EXPLAIN SELECT * 
-     FROM (SELECT i,j,k 
-          FROM (SELECT 42) t(i), 
-               (SELECT i * 2) t2(j), 
+EXPLAIN SELECT *
+     FROM (SELECT i,j,k
+          FROM (SELECT 42) t(i),
+               (SELECT i * 2) t2(j),
                (SELECT i + j) t3(k));
 
 -- FAIL --
-SELECT * 
-     FROM (SELECT 42) t(i), 
-          (SELECT * 
-               FROM (SELECT 142 k) t3(k), 
-                    (SELECT 1 WHERE i+k=0) t4(l));
+SELECT *
+     FROM (SELECT 10) t(i),
+          (SELECT *
+               FROM (SELECT 20 k) t3(k),
+                    (SELECT 30 WHERE k+i=0) t4(l));

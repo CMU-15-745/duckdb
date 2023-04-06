@@ -21,6 +21,9 @@
 #include "duckdb/planner/bound_tokens.hpp"
 #include "duckdb/planner/expression/bound_columnref_expression.hpp"
 #include "duckdb/planner/logical_operator.hpp"
+#include <iostream>
+
+#define my_own_debug(s) { std::cout << s << std::endl; }
 
 namespace duckdb {
 class BoundResultModifier;

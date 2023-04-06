@@ -119,6 +119,7 @@ static vector<string> RemoveDuplicateUsingColumns(const vector<string> &using_co
 }
 
 unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
+	my_own_debug("In Binder::Bind JoinRef " + ref.ToString());
 	auto result = make_unique<BoundJoinRef>(ref.ref_type);
 	result->left_binder = Binder::CreateBinder(context, this);
 	result->right_binder = Binder::CreateBinder(context, this);
@@ -126,29 +127,30 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 	auto &right_binder = *result->right_binder;
 
 	result->type = ref.type;
-	printf("START Bind Left\n");
+	my_own_debug("++++ START Bind Left " + ref.left->ToString());
 	result->left = left_binder.Bind(*ref.left);
-	printf("  END Bind Left\n");
+	printf("---- END Bind Left\n");
 	{
 		LateralBinder binder(left_binder, context);
-		printf("START Bind Right\n");
+		my_own_debug("++++ START Bind Right " + ref.right->ToString());
 		result->right = right_binder.Bind(*ref.right);
-		printf("  END Bind Right\n");
+		for(auto& col : right_binder.correlated_columns) {
+			my_own_debug("CorrelatedColumns in RightBinder: Name: " + col.name + " " + to_string(col.depth) + " " + col.type.ToString());
+		}
+		printf("---- END Bind Right\n");
 		result->correlated_columns = binder.ExtractCorrelatedColumns(right_binder);
 
 		printf("Cross Join? %s\n", ref.ref_type == JoinRefType::CROSS ? "true" : "false");
-		for (auto& col : correlated_columns)
-		{
-			printf("Correlated Column: %s at [%d,%d]\n", col.name.c_str(), col.binding.table_index, col.binding.column_index);
-		}
 
 		result->lateral = binder.HasCorrelatedColumns();
 		if (result->lateral) {
+			my_own_debug("In Binder::Bind JoinRef LateralJoin");
 			// lateral join: can only be an INNER or LEFT join
 			if (ref.type != JoinType::INNER && ref.type != JoinType::LEFT) {
 				throw BinderException("The combining JOIN type must be INNER or LEFT for a LATERAL reference");
 			}
 		}
+		// MergeCorrelatedColumns(result->correlated_columns);
 	}
 
 	vector<unique_ptr<ParsedExpression>> extra_conditions;
@@ -294,9 +296,9 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 	printf("\n");
 
 	printf("\nRIGHT CORRELATED COLUMNS\n");
-	for (auto& binding : right_binder.correlated_columns)
+	for (auto& binding : result->correlated_columns)
 	{
-		printf("\nColumn: %s, Depth: %d, Type: %s at [%d, %d]\n", binding.name.c_str(), binding.depth, binding.type.ToString().c_str(), binding.binding.table_index, binding.binding.column_index);
+		printf("Column: %s, Depth: %d, Type: %s at [%d, %d]\n", binding.name.c_str(), binding.depth, binding.type.ToString().c_str(), binding.binding.table_index, binding.binding.column_index);
 	}
 	printf("\n");
 

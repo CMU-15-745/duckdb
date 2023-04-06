@@ -11,6 +11,9 @@
 
 #include "duckdb/catalog/catalog_entry/table_catalog_entry.hpp"
 #include "duckdb/common/to_string.hpp"
+#include <iostream>
+
+#define my_own_debug(s) { std::cout << s << std::endl; }
 
 namespace duckdb {
 
@@ -18,6 +21,12 @@ ColumnBindingResolver::ColumnBindingResolver() {
 }
 
 void ColumnBindingResolver::VisitOperator(LogicalOperator &op) {
+	my_own_debug("Operator Name " + op.GetName())
+	// my_own_debug(op.ToString());
+	my_own_debug("Bindings " + op.GetName());
+	for(auto& col_bind: op.GetColumnBindings()) {
+		my_own_debug(to_string(col_bind.table_index) + " " + to_string(col_bind.column_index));
+	}
 	switch (op.type) {
 	case LogicalOperatorType::LOGICAL_ASOF_JOIN:
 	case LogicalOperatorType::LOGICAL_COMPARISON_JOIN:
@@ -27,12 +36,14 @@ void ColumnBindingResolver::VisitOperator(LogicalOperator &op) {
 		// first get the bindings of the LHS and resolve the LHS expressions
 		VisitOperator(*comp_join.children[0]);
 		for (auto &cond : comp_join.conditions) {
+			my_own_debug("In VisitExpression LogicalDelimJoin Left Condition Expr " + cond.left->ToString());
 			VisitExpression(&cond.left);
 		}
 		if (op.type == LogicalOperatorType::LOGICAL_DELIM_JOIN) {
 			// visit the duplicate eliminated columns on the LHS, if any
 			auto &delim_join = (LogicalDelimJoin &)op;
 			for (auto &expr : delim_join.duplicate_eliminated_columns) {
+				my_own_debug("In VisitOperator LogicalDelimJoin Expr" + expr->ToString());
 				VisitExpression(&expr);
 			}
 		}
@@ -101,11 +112,18 @@ void ColumnBindingResolver::VisitOperator(LogicalOperator &op) {
 	}
 	// general case
 	// first visit the children of this operator
+	my_own_debug("Visiting Operator Children of " + op.GetName());
 	VisitOperatorChildren(op);
 	// now visit the expressions of this operator to resolve any bound column references
+	my_own_debug("Visiting Operator Expressions of " + op.GetName());
+	for(auto& v: op.expressions) {
+		my_own_debug("Child Expression " + v->ToString());
+	}
 	VisitOperatorExpressions(op);
+	my_own_debug("Done Visiting Operator Expressions of " + op.GetName());
 	// finally update the current set of bindings to the current set of column bindings
 	bindings = op.GetColumnBindings();
+	my_own_debug("Exiting VisitOperator " + op.GetName());
 }
 
 unique_ptr<Expression> ColumnBindingResolver::VisitReplace(BoundColumnRefExpression &expr,
@@ -123,8 +141,8 @@ unique_ptr<Expression> ColumnBindingResolver::VisitReplace(BoundColumnRefExpress
 	}
 	bound_columns += "]";
 
-	printf("Column reference \"%s\" [%d.%d] (bindings: %s)\n", expr.alias.c_str(),
-	       expr.binding.table_index, expr.binding.column_index, bound_columns.c_str());
+	printf("Column reference \"%s\" [%d.%d] (bindings: %s) Expr: %s\n", expr.alias.c_str(),
+	       expr.binding.table_index, expr.binding.column_index, bound_columns.c_str(), expr_ptr->get()->ToString().c_str());
 
 	D_ASSERT(expr.depth == 0);
 	// check the current set of column bindings to see which index corresponds to the column reference

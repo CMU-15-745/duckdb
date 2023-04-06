@@ -12,6 +12,9 @@
 #include "utf8proc_wrapper.hpp"
 
 #include <sstream>
+#include <iostream>
+
+#define my_own_debug(s) { std::cout << s << std::endl; }
 
 namespace duckdb {
 
@@ -363,6 +366,20 @@ unique_ptr<RenderTreeNode> TreeRenderer::CreateRenderNode(string name, string ex
 	return result;
 }
 
+unique_ptr<RenderTreeNode> TreeRenderer::CreateRenderNode(string name, string extra_info, const vector<duckdb::ColumnBinding>& bindings) {
+	auto result = make_unique<RenderTreeNode>();
+	// my_own_debug("Name: " + name);
+	// my_own_debug("ParamsToString : " + extra_info);
+	// string output = "";
+	// for(auto& col_bind: bindings) {
+	//   output += ("[" + to_string(col_bind.table_index) + "." + to_string(col_bind.column_index) + "]");
+	// }
+	// my_own_debug(output);
+	result->name = std::move(name);
+	result->extra_text = std::move(extra_info);
+	return result;
+}
+
 class TreeChildrenIterator {
 public:
 	template <class T>
@@ -472,7 +489,8 @@ unique_ptr<RenderTree> TreeRenderer::CreateRenderTree(const T &op) {
 }
 
 unique_ptr<RenderTreeNode> TreeRenderer::CreateNode(const LogicalOperator &op) {
-	return CreateRenderNode(op.GetName(), op.ParamsToString());
+	auto& new_op = const_cast<LogicalOperator&>(op);
+	return CreateRenderNode(op.GetName(), op.ParamsToString(), new_op.GetColumnBindings());
 }
 
 unique_ptr<RenderTreeNode> TreeRenderer::CreateNode(const PhysicalOperator &op) {

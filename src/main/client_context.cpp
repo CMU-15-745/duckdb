@@ -328,6 +328,7 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 	profiler.EndPhase();
 
 	auto plan = std::move(planner.plan);
+	my_own_debug(plan->ToString());
 	// extract the result column names from the plan
 	result->properties = planner.properties;
 	result->names = planner.names;
@@ -354,9 +355,12 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 	}
 
 	profiler.StartPhase("physical_planner");
+	plan->ToString();
 	// now convert logical query plan into a physical query plan
 	PhysicalPlanGenerator physical_planner(*this);
 	auto physical_plan = physical_planner.CreatePlan(std::move(plan));
+	my_own_debug("Physical Plan");
+	my_own_debug(physical_plan->ToString());
 	profiler.EndPhase();
 
 #ifdef DEBUG

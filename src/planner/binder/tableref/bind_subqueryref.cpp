@@ -5,6 +5,7 @@
 namespace duckdb {
 
 unique_ptr<BoundTableRef> Binder::Bind(SubqueryRef &ref, CommonTableExpressionInfo *cte) {
+	my_own_debug("In Binder::Bind SubqueryRef " + ref.ToString());
 	auto binder = Binder::CreateBinder(context, this);
 	binder->can_contain_nulls = true;
 	if (cte) {
@@ -21,7 +22,18 @@ unique_ptr<BoundTableRef> Binder::Bind(SubqueryRef &ref, CommonTableExpressionIn
 	}
 	auto result = make_unique<BoundSubqueryRef>(std::move(binder), std::move(subquery));
 	bind_context.AddSubquery(bind_index, alias, ref, *result->subquery);
+	auto bindings_list = bind_context.GetBindingsList();
+	for(auto& p: bindings_list) {
+		my_own_debug("Binder::Bind SubqueryRef Alias:" + p.first + " aka " + alias + " Table " + to_string(p.second->index));
+		for(auto n: p.second->names) {
+			my_own_debug("Binder::Bind SubqueryRef Bound column: " + n);
+		}
+	}
 	MoveCorrelatedExpressions(*result->binder);
+	// my_own_debug("Postmove");
+	// for(auto& col : correlated_columns) {
+	//   my_own_debug("CorrelatedColumns: Name: " + col.name + "[" + to_string(col.binding.table_index) + "," + to_string(col.binding.column_index) + "]" + " Depth " + to_string(col.depth));
+	// }
 	return std::move(result);
 }
 

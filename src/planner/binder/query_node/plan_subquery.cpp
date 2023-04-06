@@ -165,9 +165,11 @@ CreateDuplicateEliminatedJoin(const vector<CorrelatedColumnInfo> &correlated_col
 static void CreateDelimJoinConditions(LogicalDelimJoin &delim_join,
                                       const vector<CorrelatedColumnInfo> &correlated_columns,
                                       vector<ColumnBinding> bindings, idx_t base_offset, bool perform_delim) {
+  my_own_debug("CreateDelimJoinConditions " + to_string(correlated_columns.size()));
 	auto col_count = perform_delim ? correlated_columns.size() : 1;
 	for (idx_t i = 0; i < col_count; i++) {
 		auto &col = correlated_columns[i];
+		my_own_debug("Adding bindings for " + col.name + to_string(col.binding.table_index) + "." + to_string(col.binding.column_index));
 		auto binding_idx = base_offset + i;
 		if (binding_idx >= bindings.size()) {
 			throw InternalException("Delim join - binding index out of range");
@@ -313,7 +315,7 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
 
 		// now we create the join conditions between the dependent join and the original table
 		CreateDelimJoinConditions(*delim_join, correlated_columns, plan_columns, flatten.delim_offset, perform_delim);
-		// add the actual condition based on the ANY/ALL predicate
+		// add the actual condition based on the ANY/ALL truepredicate
 		JoinCondition compare_cond;
 		compare_cond.left = std::move(expr.child);
 		compare_cond.right = BoundCastExpression::AddDefaultCastToType(
@@ -421,6 +423,9 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
 	auto delim_join = CreateDuplicateEliminatedJoin(correlated_columns, join_type, std::move(left), perform_delim);
 
 	FlattenDependentJoins flatten(*this, correlated_columns, perform_delim);
+	for(auto& col: correlated_columns) {
+		my_own_debug("Correlated columns in PlanLateralJoin: " + col.name + " " + to_string(col.depth));
+	}
 
 	// first we check which logical operators have correlated expressions in the first place
 	flatten.DetectCorrelatedExpressions(right.get(), true);
@@ -452,6 +457,9 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
 		filter->AddChild(std::move(delim_join));
 		return std::move(filter);
 	}
+	// my_own_debug("Delim Join Created Running DetectCorrelatedExpressions");
+	// my_own_debug(delim_join->ToString());
+	// flatten.DetectCorrelatedExpressions(delim_join.get(), true);
 	return std::move(delim_join);
 }
 

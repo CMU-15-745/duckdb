@@ -248,6 +248,13 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 	}
 	if (ref.lateral) {
 		// lateral join
+		string output = "";
+		for(auto& col : ref.correlated_columns) {
+			output += col.name + "," + to_string(col.binding.table_index) + "." + to_string(col.binding.column_index) + " ";
+		}
+		my_own_debug("Calling PlanLateralJoin " + output);
+		// my_own_debug(left->ToString());
+		// my_own_debug(right->ToString());
 		return PlanLateralJoin(std::move(left), std::move(right), ref.correlated_columns, ref.type,
 		                       std::move(ref.condition));
 	}

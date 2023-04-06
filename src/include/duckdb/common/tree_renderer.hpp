@@ -119,6 +119,7 @@ private:
 
 	string ExtraInfoSeparator();
 	unique_ptr<RenderTreeNode> CreateRenderNode(string name, string extra_info);
+	unique_ptr<RenderTreeNode> CreateRenderNode(string name, string extra_info, const vector<duckdb::ColumnBinding>&);
 	unique_ptr<RenderTreeNode> CreateNode(const LogicalOperator &op);
 	unique_ptr<RenderTreeNode> CreateNode(const PhysicalOperator &op);
 	unique_ptr<RenderTreeNode> CreateNode(const QueryProfiler::TreeNode &op);

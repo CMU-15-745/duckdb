@@ -20,6 +20,7 @@ void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 
 unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRefExpression &expr,
                                                                   unique_ptr<Expression> *expr_ptr) {
+  my_own_debug("In RewriteCorrelatedExpressions::VisitReplace BoundColumnRefExpression " + expr.ToString());
 	if (expr.depth == 0) {
 		return nullptr;
 	}
@@ -29,6 +30,7 @@ unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRef
 	// through different binders
 //	D_ASSERT(expr.depth == 1);
 	auto entry = correlated_map.find(expr.binding);
+	my_own_debug("RewriteCorrelatedExpressions::VisitReplace " + to_string(expr.binding.table_index) + "." + to_string(expr.binding.column_index) + " to " + to_string(base_binding.table_index) + "." + to_string(base_binding.column_index + entry->second));
 	D_ASSERT(entry != correlated_map.end());
 
 	expr.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
@@ -38,6 +40,7 @@ unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRef
 
 unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundSubqueryExpression &expr,
                                                                   unique_ptr<Expression> *expr_ptr) {
+	my_own_debug("In RewriteCorrelatedExpressions::VisitReplace BoundSubqueryExpression " + expr.ToString());
 	if (!expr.IsCorrelated()) {
 		return nullptr;
 	}

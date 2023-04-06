@@ -24,18 +24,20 @@ FlattenDependentJoins::FlattenDependentJoins(Binder &binder, const vector<Correl
 	}
 }
 
-bool FlattenDependentJoins::DetectCorrelatedExpressions(LogicalOperator *op, bool lateral) {
+bool FlattenDependentJoins::DetectCorrelatedExpressions(LogicalOperator *op, bool lateral, int depth) {
 	D_ASSERT(op);
+	my_own_debug("FlattenDependentJoins::DetectCorrelatedExpressions " + LogicalOperatorToString(op->type));
 	// check if this entry has correlated expressions
-	HasCorrelatedExpressions visitor(correlated_columns, lateral);
+	HasCorrelatedExpressions visitor(correlated_columns, lateral, depth);
 	visitor.VisitOperator(*op);
 	bool has_correlation = visitor.has_correlated_expressions;
 	// now visit the children of this entry and check if they have correlated expressions
+	my_own_debug("Going into child");
 	for (auto &child : op->children) {
 		// we OR the property with its children such that has_correlation is true if either
 		// (1) this node has a correlated expression or
 		// (2) one of its children has a correlated expression
-		if (DetectCorrelatedExpressions(child.get(), lateral)) {
+		if (DetectCorrelatedExpressions(child.get(), lateral, depth+1)) {
 			has_correlation = true;
 		}
 	}

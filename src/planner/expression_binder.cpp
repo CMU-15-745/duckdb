@@ -36,6 +36,7 @@ ExpressionBinder::~ExpressionBinder() {
 
 BindResult ExpressionBinder::BindExpression(unique_ptr<ParsedExpression> *expr, idx_t depth, bool root_expression) {
 	auto &expr_ref = **expr;
+	my_own_debug("ExpressionBinder::BindExpression " + expr->get()->ToString() + " Depth " + to_string(depth) + " Type " + ExpressionClassToString(expr_ref.expression_class));
 	switch (expr_ref.expression_class) {
 	case ExpressionClass::BETWEEN:
 		return BindExpression((BetweenExpression &)expr_ref, depth);
@@ -89,12 +90,15 @@ bool ExpressionBinder::BindCorrelatedColumns(unique_ptr<ParsedExpression> &expr)
 	bool success = false;
 	while (!active_binders.empty()) {
 		auto &next_binder = active_binders.back();
+		my_own_debug("Binding at depth " + to_string(depth));
 		ExpressionBinder::QualifyColumnNames(next_binder->binder, expr);
+		my_own_debug("After QualifyColumnNames for depth " + to_string(depth) + " for " + expr->ToString());
 		auto bind_result = next_binder->Bind(&expr, depth);
 		if (bind_result.empty()) {
 			success = true;
 			break;
 		}
+		my_own_debug("Incomplete binding at depth " + to_string(depth) + " for " + expr->ToString());
 		depth++;
 		active_binders.pop_back();
 	}
@@ -112,9 +116,11 @@ void ExpressionBinder::BindChild(unique_ptr<ParsedExpression> &expr, idx_t depth
 }
 
 void ExpressionBinder::ExtractCorrelatedExpressions(Binder &binder, Expression &expr) {
+	my_own_debug("ExpressionBinder::ExtractCorrelatedExpressions " + expr.ToString());
 	if (expr.type == ExpressionType::BOUND_COLUMN_REF) {
 		auto &bound_colref = (BoundColumnRefExpression &)expr;
 		if (bound_colref.depth > 0) {
+			my_own_debug("AddCorrelatedColumn " + bound_colref.ToString());
 			binder.AddCorrelatedColumn(CorrelatedColumnInfo(bound_colref));
 		}
 	}
@@ -192,10 +198,12 @@ LogicalType ExpressionBinder::ExchangeNullType(const LogicalType &type) {
 
 unique_ptr<Expression> ExpressionBinder::Bind(unique_ptr<ParsedExpression> &expr, LogicalType *result_type,
                                               bool root_expression) {
+  my_own_debug("ExpressionBinder::Bind " + expr->ToString());
 	// bind the main expression
 	auto error_msg = Bind(&expr, 0, root_expression);
 	if (!error_msg.empty()) {
 		// failed to bind: try to bind correlated columns in the expression (if any)
+		my_own_debug("ExpressionBinder::Bind Binding BindCorrelatedColumns " + expr->ToString());
 		bool success = BindCorrelatedColumns(expr);
 		if (!success) {
 			throw BinderException(error_msg);

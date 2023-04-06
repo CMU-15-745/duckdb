@@ -39,6 +39,7 @@ public:
 };
 
 BindResult ExpressionBinder::BindExpression(SubqueryExpression &expr, idx_t depth) {
+	my_own_debug("ExpressionBinder::BindExpression SubqueryExpression " + expr.ToString());
 	if (expr.subquery->node->type != QueryNodeType::BOUND_SUBQUERY_NODE) {
 		D_ASSERT(depth == 0);
 		// first bind the actual subquery in a new binder

@@ -472,6 +472,14 @@ vector<string> BindContext::AliasColumnNames(const string &table_name, const vec
 
 void BindContext::AddSubquery(idx_t index, const string &alias, SubqueryRef &ref, BoundQueryNode &subquery) {
 	auto names = AliasColumnNames(alias, subquery.names, ref.column_name_alias);
+	// for (int i = 0; i < subquery.names.size(); i++) {
+	//   if (i < ref.column_name_alias.size()) {
+	//     my_own_debug("In AddSubquery aliasing column names: " + subquery.names[i] + " " + ref.column_name_alias[i]);
+	//   }
+	//   else {
+	//     my_own_debug("In AddSubquery non-alias name: " + subquery.names[i]);
+	//   }
+	// }
 	AddGenericBinding(index, alias, names, subquery.types);
 }
 

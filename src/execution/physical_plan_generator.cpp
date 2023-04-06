@@ -36,11 +36,13 @@ PhysicalPlanGenerator::~PhysicalPlanGenerator() {
 }
 
 unique_ptr<PhysicalOperator> PhysicalPlanGenerator::CreatePlan(unique_ptr<LogicalOperator> op) {
+	my_own_debug("PhysicalPlanGenerator::CreatePlan");
 	auto &profiler = QueryProfiler::Get(context);
 
 	// first resolve column references
 	profiler.StartPhase("column_binding");
 	ColumnBindingResolver resolver;
+	my_own_debug(op->ToString());
 	resolver.VisitOperator(*op);
 	profiler.EndPhase();
 

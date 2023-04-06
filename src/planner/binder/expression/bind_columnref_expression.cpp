@@ -81,6 +81,7 @@ unique_ptr<ParsedExpression> ExpressionBinder::QualifyColumnName(const string &c
 }
 
 void ExpressionBinder::QualifyColumnNames(unique_ptr<ParsedExpression> &expr) {
+	my_own_debug("ExpressionBinder::QualifyColumnNames " + expr->ToString() + " Type " + ExpressionTypeToString(expr->type));
 	switch (expr->type) {
 	case ExpressionType::COLUMN_REF: {
 		auto &colref = (ColumnRefExpression &)*expr;
@@ -90,6 +91,9 @@ void ExpressionBinder::QualifyColumnNames(unique_ptr<ParsedExpression> &expr) {
 			if (!expr->alias.empty()) {
 				new_expr->alias = expr->alias;
 			}
+			my_own_debug("QualifyColumnName");
+			my_own_debug(expr->ToString());
+			my_own_debug(new_expr->ToString());
 			new_expr->query_location = colref.query_location;
 			expr = std::move(new_expr);
 		}
@@ -284,18 +288,22 @@ unique_ptr<ParsedExpression> ExpressionBinder::QualifyColumnName(ColumnRefExpres
 }
 
 BindResult ExpressionBinder::BindExpression(ColumnRefExpression &colref_p, idx_t depth) {
+	my_own_debug("ExpressionBinder::BindExpression ColumnRefExpression " + colref_p.ToString());
 	if (binder.GetBindingMode() == BindingMode::EXTRACT_NAMES) {
 		return BindResult(make_unique<BoundConstantExpression>(Value(LogicalType::SQLNULL)));
 	}
 	string error_message;
+	my_own_debug("ExpressionBinder::BindExpression QualifyColumnName Check " + colref_p.ToString());
 	auto expr = QualifyColumnName(colref_p, error_message);
 	if (!expr) {
 		return BindResult(binder.FormatError(colref_p, error_message));
 	}
+	my_own_debug("ExpressionBinder::BindExpression QualifyColumnName Pass " + colref_p.ToString());
 	expr->query_location = colref_p.query_location;
 
 	// a generated column returns a generated expression, a struct on a column returns a struct extract
 	if (expr->type != ExpressionType::COLUMN_REF) {
+		my_own_debug("Not a COLUMN_REF " + colref_p.ToString());
 		auto alias = expr->alias;
 		auto result = BindExpression(&expr, depth);
 		if (result.expression) {
@@ -339,6 +347,7 @@ BindResult ExpressionBinder::BindExpression(ColumnRefExpression &colref_p, idx_t
 		ref.name = colref.column_names.back();
 		ref.query_location = colref.query_location;
 		bound_columns.push_back(std::move(ref));
+		my_own_debug("Successfully bound " + ref.name);
 	} else {
 		result.error = binder.FormatError(colref_p, result.error);
 	}

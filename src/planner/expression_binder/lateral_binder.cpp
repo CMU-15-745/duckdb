@@ -15,6 +15,7 @@ void LateralBinder::ExtractCorrelatedColumns(Expression &expr) {
 		if (bound_colref.depth > 0) {
 			// add the correlated column info
 			CorrelatedColumnInfo info(bound_colref);
+			my_own_debug("LateralBinder::ExtractCorrelatedColumns from Expression Found correlated column " + info.name + "[" + to_string(info.binding.table_index) + "." + to_string(info.binding.column_index) + "]");
 			if (std::find(correlated_columns.begin(), correlated_columns.end(), info) == correlated_columns.end()) {
 				correlated_columns.push_back(std::move(info));
 			}
@@ -40,12 +41,16 @@ BindResult LateralBinder::BindColumnRef(unique_ptr<ParsedExpression> *expr_ptr, 
 
 vector<CorrelatedColumnInfo> LateralBinder::ExtractCorrelatedColumns(Binder &binder) {
 
+	for(auto& col: correlated_columns) {
+		my_own_debug("LateralBinder::ExtractCorrelatedColumns, Originally had " + col.name + "[" + to_string(col.binding.table_index) + "." + to_string(col.binding.column_index) + "]");
+	}
+
 	if (correlated_columns.empty()) {
 		return binder.correlated_columns;
 	}
 
 	// clear outer
-	correlated_columns.clear();
+	// correlated_columns.clear();
 	auto all_correlated_columns = binder.correlated_columns;
 
 	// remove outer from inner
@@ -56,13 +61,17 @@ vector<CorrelatedColumnInfo> LateralBinder::ExtractCorrelatedColumns(Binder &bin
 		}
 	}
 
+	// clear outer
+	correlated_columns.clear();
+
 	// add inner to outer
-	for (auto &corr_column : binder.correlated_columns) {
+	for (auto &corr_column : all_correlated_columns) {
+		my_own_debug("LateralBinder::ExtractCorrelatedColumns, Adding " + corr_column.name + "[" + to_string(corr_column.binding.table_index) + "." + to_string(corr_column.binding.column_index) + "]");
 		correlated_columns.push_back(corr_column);
 	}
 
 	// clear inner
-	binder.correlated_columns.clear();
+	// binder.correlated_columns.clear();
 	return all_correlated_columns;
 }
 
