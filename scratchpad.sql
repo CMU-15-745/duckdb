@@ -83,3 +83,17 @@ SELECT *
           (SELECT * 
                FROM (SELECT 142 k) t3(k), 
                     (SELECT 1 WHERE i+k=0) t4(l));
+-- SUCCESS --
+SELECT * 
+     FROM (SELECT * 
+               FROM (SELECT 42) t1(i), 
+                    (SELECT 22) t2(j), 
+                    (SELECT 1 WHERE i+j=64) t3(l));
+
+-- FAIL --
+SELECT * 
+     FROM (SELECT * 
+          FROM (SELECT 42) t(i), 
+               (SELECT * 
+                    FROM (SELECT 142 k) t3(k), 
+                         (SELECT 1 WHERE i+k=0) t4(l)));
