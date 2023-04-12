@@ -221,6 +221,12 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
                                                      unique_ptr<LogicalOperator> &root,
                                                      unique_ptr<LogicalOperator> plan) {
 	auto &correlated_columns = expr.binder->correlated_columns;
+	vector<CorrelatedColumnInfo> current_correlated_columns;
+	for (auto & corr: correlated_columns){
+		if (corr.depth == 1) {
+			current_correlated_columns.push_back(corr);
+		}
+	}
 	// FIXME: there should be a way of disabling decorrelation for ANY queries as well, but not for now...
 	bool perform_delim =
 	    expr.subquery_type == SubqueryType::ANY ? true : PerformDuplicateElimination(binder, correlated_columns);
@@ -243,7 +249,7 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
 		// the left side is the original plan
 		// this is the side that will be duplicate eliminated and pushed into the RHS
 		auto delim_join =
-		    CreateDuplicateEliminatedJoin(correlated_columns, JoinType::SINGLE, std::move(root), perform_delim);
+		    CreateDuplicateEliminatedJoin(current_correlated_columns, JoinType::SINGLE, std::move(root), perform_delim);
 
 		// the right side initially is a DEPENDENT join between the duplicate eliminated scan and the subquery
 		// HOWEVER: we do not explicitly create the dependent join
@@ -261,7 +267,7 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
 		auto plan_columns = dependent_join->GetColumnBindings();
 
 		// now create the join conditions
-		CreateDelimJoinConditions(*delim_join, correlated_columns, plan_columns, flatten.delim_offset, perform_delim);
+		CreateDelimJoinConditions(*delim_join, current_correlated_columns, plan_columns, flatten.delim_offset, perform_delim);
 		delim_join->AddChild(std::move(dependent_join));
 		root = std::move(delim_join);
 		// finally push the BoundColumnRefExpression referring to the data element returned by the join
@@ -273,7 +279,7 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
 		// this query is similar to the correlated SCALAR query, except we use a MARK join here
 		idx_t mark_index = binder.GenerateTableIndex();
 		auto delim_join =
-		    CreateDuplicateEliminatedJoin(correlated_columns, JoinType::MARK, std::move(root), perform_delim);
+		    CreateDuplicateEliminatedJoin(current_correlated_columns, JoinType::MARK, std::move(root), perform_delim);
 		delim_join->mark_index = mark_index;
 		// RHS
 		FlattenDependentJoins flatten(binder, correlated_columns, perform_delim, true);
@@ -284,7 +290,7 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
 		auto plan_columns = dependent_join->GetColumnBindings();
 
 		// now we create the join conditions between the dependent join and the original table
-		CreateDelimJoinConditions(*delim_join, correlated_columns, plan_columns, flatten.delim_offset, perform_delim);
+		CreateDelimJoinConditions(*delim_join, current_correlated_columns, plan_columns, flatten.delim_offset, perform_delim);
 		delim_join->AddChild(std::move(dependent_join));
 		root = std::move(delim_join);
 		// finally push the BoundColumnRefExpression referring to the marker
@@ -301,7 +307,7 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
 		// [i=ANY(...)])
 		idx_t mark_index = binder.GenerateTableIndex();
 		auto delim_join =
-		    CreateDuplicateEliminatedJoin(correlated_columns, JoinType::MARK, std::move(root), perform_delim);
+		    CreateDuplicateEliminatedJoin(current_correlated_columns, JoinType::MARK, std::move(root), perform_delim);
 		delim_join->mark_index = mark_index;
 		// RHS
 		FlattenDependentJoins flatten(binder, correlated_columns, true, true);
@@ -312,7 +318,7 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
 		auto plan_columns = dependent_join->GetColumnBindings();
 
 		// now we create the join conditions between the dependent join and the original table
-		CreateDelimJoinConditions(*delim_join, correlated_columns, plan_columns, flatten.delim_offset, perform_delim);
+		CreateDelimJoinConditions(*delim_join, current_correlated_columns, plan_columns, flatten.delim_offset, perform_delim);
 		// add the actual condition based on the ANY/ALL predicate
 		JoinCondition compare_cond;
 		compare_cond.left = std::move(expr.child);

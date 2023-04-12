@@ -119,7 +119,7 @@ static vector<string> RemoveDuplicateUsingColumns(const vector<string> &using_co
 }
 
 unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
-	my_own_debug("JoinRef: " + ref.ToString());
+//	my_own_debug("JoinRef: " + ref.ToString());
 
 	auto result = make_unique<BoundJoinRef>(ref.ref_type);
 	result->left_binder = Binder::CreateBinder(context, this);
@@ -142,7 +142,7 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 		printf("Cross Join? %s\n", ref.ref_type == JoinRefType::CROSS ? "true" : "false");
 		for (auto& col : result->correlated_columns)
 		{
-			my_own_debug("CorrelatedColumns in RightBinder (After decrement): Name: " + col.name + " " + to_string(col.depth) + " " + col.type.ToString());
+			my_own_debug("CorrelatedColumns in result (after depth reduction): Name: " + col.name + " " + to_string(col.depth) + " " + col.type.ToString());
 		}
 
 		result->lateral = binder.HasCorrelatedColumns();

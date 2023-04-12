@@ -106,3 +106,12 @@ FROM (SELECT *
            (SELECT *
             FROM (SELECT 142 k) t3(k),
                  (SELECT 1 WHERE i=0) t4(l)));
+
+
+SELECT *
+FROM (SELECT 42) t(i),
+     (SELECT *
+      FROM (SELECT 142 k) t3(k),
+           (SELECT *
+               FROM (SELECT 242 l) t4(l),
+                    (SELECT 1 WHERE i+l+k=0) t5(m)));

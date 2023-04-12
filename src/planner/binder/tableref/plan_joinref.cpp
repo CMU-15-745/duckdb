@@ -246,7 +246,7 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 		ref.type = JoinType::LEFT;
 		std::swap(left, right);
 	}
-	if (ref.lateral) {
+	if (ref.lateral && plan_subquery) {
 		// lateral join
 		return PlanLateralJoin(std::move(left), std::move(right), ref.correlated_columns, ref.type,
 		                       std::move(ref.condition));

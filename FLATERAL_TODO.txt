@@ -1,0 +1,6 @@
+TODO:
+- Pass only current_correlated_columns to flatten in plan_subquery.cpp:430
+- Fix rewriter to call VisitReplace only on the current_correlated_columns
+- Fix current_correlated_columns so that it doesn't take depth=0 and 1 for laterals and subqueries respectively
+
+- Disable perform_delim maybe (once everything is working)?

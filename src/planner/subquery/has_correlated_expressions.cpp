@@ -26,7 +26,7 @@ unique_ptr<Expression> HasCorrelatedExpressions::VisitReplace(BoundColumnRefExpr
 			has_correlated_expressions = true;
 			return nullptr;
 		}
-		throw InternalException("Expression with depth > 1 detected in non-lateral join");
+//		throw InternalException("Expression with depth > 1 detected in non-lateral join");
 	}
 	// correlated column reference
 	D_ASSERT(expr.depth == 1);
