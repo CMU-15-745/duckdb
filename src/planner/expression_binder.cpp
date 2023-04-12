@@ -36,6 +36,7 @@ ExpressionBinder::~ExpressionBinder() {
 
 BindResult ExpressionBinder::BindExpression(unique_ptr<ParsedExpression> *expr, idx_t depth, bool root_expression) {
 	auto &expr_ref = **expr;
+	my_own_debug("BindExpression: " + to_string(static_cast<uint8_t>(expr_ref.expression_class)))
 	switch (expr_ref.expression_class) {
 	case ExpressionClass::BETWEEN:
 		return BindExpression((BetweenExpression &)expr_ref, depth);

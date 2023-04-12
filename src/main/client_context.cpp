@@ -328,6 +328,7 @@ shared_ptr<PreparedStatementData> ClientContext::CreatePreparedStatement(ClientC
 	profiler.EndPhase();
 
 	auto plan = std::move(planner.plan);
+	my_own_debug(plan->ToString());
 	// extract the result column names from the plan
 	result->properties = planner.properties;
 	result->names = planner.names;

@@ -72,6 +72,9 @@ bool SubqueryDependentFilter(Expression *expr) {
 }
 unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal(unique_ptr<LogicalOperator> plan,
                                                                                  bool &parent_propagate_null_values) {
+	// DEBUG Print Tree
+	printf("%s\n", plan->ToString().c_str());
+	
 	// first check if the logical operator has correlated expressions
 	auto entry = has_correlated_expressions.find(plan.get());
 	D_ASSERT(entry != has_correlated_expressions.end());

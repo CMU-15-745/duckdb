@@ -284,6 +284,9 @@ unique_ptr<ParsedExpression> ExpressionBinder::QualifyColumnName(ColumnRefExpres
 }
 
 BindResult ExpressionBinder::BindExpression(ColumnRefExpression &colref_p, idx_t depth) {
+	my_own_debug("ColumnRef BindExpression:" + colref_p.ToString());
+	my_own_debug("ColumnRef BindExpression Mode:" + to_string(static_cast<uint8_t>(binder.GetBindingMode())));
+
 	if (binder.GetBindingMode() == BindingMode::EXTRACT_NAMES) {
 		return BindResult(make_unique<BoundConstantExpression>(Value(LogicalType::SQLNULL)));
 	}

@@ -26,7 +26,9 @@ SELECT *
 
 
 SELECT * FROM (SELECT 42) t(i)
-WHERE i IN (SELECT * FROM (SELECT 42 k) t3(k)
+WHERE i IN (SELECT l FROM (SELECT 42) t(l) ,
+                          (SELECT i * 2) t2(j),
+                          (SELECT i + j) t3(k)
             WHERE k IN (SELECT * FROM (SELECT 42 l) t4(l) WHERE i-k = 0));
 
 
@@ -67,7 +69,7 @@ SELECT *
 SELECT * 
      FROM (SELECT i,j,k 
           FROM (SELECT 42) t(i), 
-               (SELECT i * 2) t2(j), 
+               (SELECT i * 2) t2(j),
                (SELECT i + j) t3(k));
 
 -- SUCCESS --
@@ -97,3 +99,10 @@ SELECT *
                (SELECT * 
                     FROM (SELECT 142 k) t3(k), 
                          (SELECT 1 WHERE i+k=0) t4(l)));
+
+SELECT *
+FROM (SELECT *
+      FROM (SELECT 42) t(i),
+           (SELECT *
+            FROM (SELECT 142 k) t3(k),
+                 (SELECT 1 WHERE i=0) t4(l)));

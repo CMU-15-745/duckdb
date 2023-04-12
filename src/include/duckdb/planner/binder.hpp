@@ -22,6 +22,8 @@
 #include "duckdb/planner/expression/bound_columnref_expression.hpp"
 #include "duckdb/planner/logical_operator.hpp"
 
+#include <iostream>
+
 namespace duckdb {
 class BoundResultModifier;
 class BoundSelectNode;
@@ -46,6 +48,8 @@ struct CommonTableExpressionInfo;
 struct BoundParameterMap;
 
 enum class BindingMode : uint8_t { STANDARD_BINDING, EXTRACT_NAMES };
+
+#define my_own_debug(s) { std::cout << s << std::endl; }
 
 struct CorrelatedColumnInfo {
 	ColumnBinding binding;

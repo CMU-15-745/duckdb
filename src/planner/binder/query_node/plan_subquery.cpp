@@ -417,8 +417,15 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
 		                                             arbitrary_expressions);
 	}
 
-	auto perform_delim = PerformDuplicateElimination(*this, correlated_columns);
-	auto delim_join = CreateDuplicateEliminatedJoin(correlated_columns, join_type, std::move(left), perform_delim);
+	vector<CorrelatedColumnInfo> current_correlated_columns;
+	for (auto & corr: correlated_columns){
+		if (corr.depth == 0) {
+			current_correlated_columns.push_back(corr);
+		}
+	}
+
+	auto perform_delim = PerformDuplicateElimination(*this, current_correlated_columns);
+	auto delim_join = CreateDuplicateEliminatedJoin(current_correlated_columns, join_type, std::move(left), perform_delim);
 
 	FlattenDependentJoins flatten(*this, correlated_columns, perform_delim);
 
@@ -437,7 +444,7 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
 	D_ASSERT(delim_join->conditions.empty());
 	delim_join->conditions = std::move(conditions);
 	// then add the delim join conditions
-	CreateDelimJoinConditions(*delim_join, correlated_columns, plan_columns, flatten.delim_offset, perform_delim);
+	CreateDelimJoinConditions(*delim_join, current_correlated_columns, plan_columns, flatten.delim_offset, perform_delim);
 	delim_join->AddChild(std::move(dependent_join));
 
 	// check if there are any arbitrary expressions left
@@ -454,5 +461,30 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
 	}
 	return std::move(delim_join);
 }
+
+
+//void Binder::PlanLaterals(unique_ptr<Expression> *expr_ptr, unique_ptr<LogicalOperator> *root) {
+//	if (!*expr_ptr) {
+//		return;
+//	}
+//	auto &expr = **expr_ptr;
+//
+//	// first visit the children of the node, if any
+//	ExpressionIterator::EnumerateChildren(expr, [&](unique_ptr<Expression> &expr) { PlanSubqueries(&expr, root); });
+//
+//	// check if this is a subquery node
+//	if (expr.expression_class == ExpressionClass::BOUND_SUBQUERY) {
+//		auto &subquery = (BoundSubqueryExpression &)expr;
+//		// subquery node! plan it
+//		if (subquery.IsCorrelated() && !plan_subquery) {
+//			// detected a nested correlated subquery
+//			// we don't plan it yet here, we are currently planning a subquery
+//			// nested subqueries will only be planned AFTER the current subquery has been flattened entirely
+//			has_unplanned_subqueries = true;
+//			return;
+//		}
+//		*expr_ptr = PlanSubquery(subquery, *root);
+//	}
+//}
 
 } // namespace duckdb

@@ -58,12 +58,17 @@ vector<CorrelatedColumnInfo> LateralBinder::ExtractCorrelatedColumns(Binder &bin
 
 	// add inner to outer
 	for (auto &corr_column : binder.correlated_columns) {
-		correlated_columns.push_back(corr_column);
+		if (corr_column.depth >= 1) {
+			// depth > 1, the column references the query ABOVE the current one
+			// add to the set of correlated columns for THIS query
+			corr_column.depth -= 1;
+			correlated_columns.push_back(corr_column);
+		}
 	}
 
 	// clear inner
-	binder.correlated_columns.clear();
-	return all_correlated_columns;
+//	binder.correlated_columns.clear();
+	return correlated_columns;
 }
 
 BindResult LateralBinder::BindExpression(unique_ptr<ParsedExpression> *expr_ptr, idx_t depth, bool root_expression) {

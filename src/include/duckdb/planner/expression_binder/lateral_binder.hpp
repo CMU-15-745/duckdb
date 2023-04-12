@@ -23,7 +23,13 @@ public:
 	//! Extract the correlated lateral join columns and remove them from the targeted binder
 	vector<CorrelatedColumnInfo> ExtractCorrelatedColumns(Binder &binder);
 	bool HasCorrelatedColumns() const {
-		return !correlated_columns.empty();
+		for (auto & corr: correlated_columns) {
+			if (corr.depth == 0) {
+				return true;
+			}
+		}
+		return false;
+		//		return !correlated_columns.empty();
 	}
 
 	static void ReduceExpressionDepth(LogicalOperator &op, const vector<CorrelatedColumnInfo> &info);

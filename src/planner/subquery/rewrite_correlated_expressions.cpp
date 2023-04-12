@@ -29,6 +29,7 @@ unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRef
 	// through different binders
 //	D_ASSERT(expr.depth == 1);
 	auto entry = correlated_map.find(expr.binding);
+	my_own_debug("VisitReplace expr: " + expr.ToString());
 	D_ASSERT(entry != correlated_map.end());
 
 	expr.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);

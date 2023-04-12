@@ -39,6 +39,9 @@ public:
 };
 
 BindResult ExpressionBinder::BindExpression(SubqueryExpression &expr, idx_t depth) {
+	my_own_debug("Subquery BindExpression:" + expr.ToString());
+//	my_own_debug("Subquery BindExpression Expr Type:" + to_string(static_cast<uint8_t>(expr.subquery->node->type)));
+
 	if (expr.subquery->node->type != QueryNodeType::BOUND_SUBQUERY_NODE) {
 		D_ASSERT(depth == 0);
 		// first bind the actual subquery in a new binder
@@ -48,6 +51,7 @@ BindResult ExpressionBinder::BindExpression(SubqueryExpression &expr, idx_t dept
 		// check the correlated columns of the subquery for correlated columns with depth > 1
 		for (idx_t i = 0; i < subquery_binder->correlated_columns.size(); i++) {
 			CorrelatedColumnInfo corr = subquery_binder->correlated_columns[i];
+			my_own_debug("Subquery BindExpression (before depth reduction):" +  corr.name + " " + to_string(corr.depth));
 			if (corr.depth > 1) {
 				// depth > 1, the column references the query ABOVE the current one
 				// add to the set of correlated columns for THIS query
