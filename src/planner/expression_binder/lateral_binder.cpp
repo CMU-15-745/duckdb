@@ -29,7 +29,7 @@ BindResult LateralBinder::BindColumnRef(unique_ptr<ParsedExpression> *expr_ptr, 
 	}
 	auto result = ExpressionBinder::BindExpression(expr_ptr, depth);
 	if (result.HasError()) {
-		return result;
+	return result;
 	}
 //	if (depth > 1) {
 //		throw BinderException("Nested lateral joins are not supported yet");

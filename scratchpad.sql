@@ -115,3 +115,25 @@ FROM (SELECT 42) t(i),
            (SELECT *
                FROM (SELECT 242 l) t4(l),
                     (SELECT 1 WHERE i+l+k=0) t5(m)));
+
+
+SELECT *
+    FROM (SELECT 42) t(i)
+    WHERE i IN (SELECT l
+                FROM (SELECT 42) t(l) ,
+                     (SELECT i * 2) t2(j),
+                     (SELECT i + j) t3(k)
+                WHERE k IN (SELECT l
+                                  FROM (SELECT 42 l) t4(l),
+                                       (SELECT l+5) t5(n)
+                                  WHERE i-k IN (SELECT * FROM (SELECT i+5))
+            ));
+
+SELECT *
+FROM (SELECT 42) t(i)
+WHERE i IN (SELECT k
+            FROM (SELECT 42) t(k)
+            WHERE k IN (SELECT l
+                        FROM (SELECT 42 l) t4(l)
+                        WHERE i-k IN (SELECT * FROM (SELECT i+5))
+            ));

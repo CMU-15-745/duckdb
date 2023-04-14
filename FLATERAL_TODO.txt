@@ -1,6 +1,15 @@
 TODO:
 - Pass only current_correlated_columns to flatten in plan_subquery.cpp:430
 - Fix rewriter to call VisitReplace only on the current_correlated_columns
-- Fix current_correlated_columns so that it doesn't take depth=0 and 1 for laterals and subqueries respectively
+- Fix current_correlated_columns so that it doesn't take depth=0 and 1 for laterals and subqueries respectivelySELECT * FROM (SELECT 42) t(i)
+- Push correlated columns into a set to remove duplicate references?
+                                                                                                              WHERE i IN (SELECT l FROM (SELECT 42) t(l) ,
+                                                                                                                                         (SELECT i * 2) t2(j),
+                                                                                                                                         (SELECT i + j) t3(k)
+                                                                                                                           WHERE k IN (SELECT l FROM (SELECT 42 l) t4(l),
+                                                                                                                                                      (SELECT l+5) t5(n)
+                                                                                                                                                       WHERE i-k IN (SELECT * FROM (SELECT i+5)
+                                                                                                                                                                               WHERE l-k IN (SELECT i+10))
+                                                                                                                                                       ));
 
 - Disable perform_delim maybe (once everything is working)?

@@ -223,9 +223,9 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
 	auto &correlated_columns = expr.binder->correlated_columns;
 	vector<CorrelatedColumnInfo> current_correlated_columns;
 	for (auto & corr: correlated_columns){
-		if (corr.depth == 1) {
+//		if (corr.depth == 1) {
 			current_correlated_columns.push_back(corr);
-		}
+//		}
 	}
 	// FIXME: there should be a way of disabling decorrelation for ANY queries as well, but not for now...
 	bool perform_delim =
