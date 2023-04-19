@@ -4,6 +4,8 @@
 #include "duckdb/planner/expression/bound_columnref_expression.hpp"
 #include "duckdb/planner/expression/bound_subquery_expression.hpp"
 
+#include <iostream>
+
 namespace duckdb {
 
 LateralBinder::LateralBinder(Binder &binder, ClientContext &context) : ExpressionBinder(binder, context) {
@@ -16,6 +18,7 @@ void LateralBinder::ExtractCorrelatedColumns(Expression &expr) {
 			// add the correlated column info
 			CorrelatedColumnInfo info(bound_colref);
 			if (std::find(correlated_columns.begin(), correlated_columns.end(), info) == correlated_columns.end()) {
+                std::cout << "LateralBinder " << info.name << " at depth: " << info.depth << std::endl;
 				correlated_columns.push_back(std::move(info));
 			}
 		}
@@ -31,9 +34,13 @@ BindResult LateralBinder::BindColumnRef(unique_ptr<ParsedExpression> *expr_ptr, 
 	if (result.HasError()) {
 		return result;
 	}
+    /*
 	if (depth > 1) {
+        std::cout << "Expr: " << (*expr_ptr)->ToString() << std::endl;
+        std::cout << "Depth: " << depth << std::endl;
 		throw BinderException("Nested lateral joins are not supported yet");
 	}
+    */
 	ExtractCorrelatedColumns(*result.expression);
 	return result;
 }
@@ -45,7 +52,7 @@ vector<CorrelatedColumnInfo> LateralBinder::ExtractCorrelatedColumns(Binder &bin
 	}
 
 	// clear outer
-	correlated_columns.clear();
+	// correlated_columns.clear();
 	auto all_correlated_columns = binder.correlated_columns;
 
 	// remove outer from inner

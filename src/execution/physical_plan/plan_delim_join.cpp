@@ -24,7 +24,8 @@ unique_ptr<PhysicalOperator> PhysicalPlanGenerator::CreatePlan(LogicalDelimJoin 
 	// first create the underlying join
 	auto plan = CreatePlan(op.Cast<LogicalComparisonJoin>());
 	// this should create a join, not a cross product
-	D_ASSERT(plan && plan->type != PhysicalOperatorType::CROSS_PRODUCT);
+	D_ASSERT(plan);
+    // D_ASSERT(plan && plan->type != PhysicalOperatorType::CROSS_PRODUCT);
 	// duplicate eliminated join
 	// first gather the scans on the duplicate eliminated data set from the RHS
 	vector<PhysicalOperator *> delim_scans;

@@ -18,6 +18,7 @@ ColumnBindingResolver::ColumnBindingResolver() {
 }
 
 void ColumnBindingResolver::VisitOperator(LogicalOperator &op) {
+
 	switch (op.type) {
 	case LogicalOperatorType::LOGICAL_ASOF_JOIN:
 	case LogicalOperatorType::LOGICAL_COMPARISON_JOIN:
@@ -99,7 +100,8 @@ void ColumnBindingResolver::VisitOperator(LogicalOperator &op) {
 	default:
 		break;
 	}
-	// general case
+
+    // general case
 	// first visit the children of this operator
 	VisitOperatorChildren(op);
 	// now visit the expressions of this operator to resolve any bound column references

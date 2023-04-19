@@ -143,8 +143,9 @@ protected:
 
 	virtual string UnsupportedAggregateMessage();
 	virtual string UnsupportedUnnestMessage();
-
+public:
 	Binder &binder;
+protected:
 	ClientContext &context;
 	ExpressionBinder *stored_binder;
 	vector<BoundColumnReferenceInfo> bound_columns;

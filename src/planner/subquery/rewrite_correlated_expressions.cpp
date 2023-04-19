@@ -7,6 +7,8 @@
 #include "duckdb/planner/expression/bound_subquery_expression.hpp"
 #include "duckdb/planner/expression_iterator.hpp"
 
+#include <iostream>
+
 namespace duckdb {
 
 RewriteCorrelatedExpressions::RewriteCorrelatedExpressions(ColumnBinding base_binding,
@@ -20,14 +22,15 @@ void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 
 unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRefExpression &expr,
                                                                   unique_ptr<Expression> *expr_ptr) {
-	if (expr.depth == 0) {
+    std::cout << "VisitReplace: " << expr.ToString() << " Depth: " << expr.depth << std::endl;
+    if (expr.depth == 0) {
 		return nullptr;
 	}
 	// correlated column reference
 	// replace with the entry referring to the duplicate eliminated scan
 	// if this assertion occurs it generally means the correlated expressions were not propagated correctly
 	// through different binders
-	D_ASSERT(expr.depth == 1);
+	// D_ASSERT(expr.depth == 1);
 	auto entry = correlated_map.find(expr.binding);
 	D_ASSERT(entry != correlated_map.end());
 
@@ -68,27 +71,45 @@ void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelated
 }
 
 void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelatedExpressions(Expression &child) {
+    std::cout << "RewriteCorrelatedExpressions: " << child.ToString() << std::endl;
 	if (child.type == ExpressionType::BOUND_COLUMN_REF) {
 		// bound column reference
 		auto &bound_colref = child.Cast<BoundColumnRefExpression>();
+        std::cout << "Rec BoundColumnRef depth: " << bound_colref.depth << std::endl;
 		if (bound_colref.depth == 0) {
+            std::cout << "Not correlated (depth = 0)" << std::endl;
 			// not a correlated column, ignore
 			return;
 		}
 		// correlated column
 		// check the correlated map
+        std::cout << "Correlated (depth > 0)" << std::endl;
+
+        std::cout << "Printing Correlated Map" << std::endl;
+        for (auto& p : correlated_map)
+        {
+            auto& k = p.first;
+            auto& v = p.second;
+            std::cout << "Key: [" << k.table_index << "." << k.column_index << "] Second: " << v << std::endl;
+        }
+
 		auto entry = correlated_map.find(bound_colref.binding);
 		if (entry != correlated_map.end()) {
+            std::cout << "Found binding in Correlated Map" << std::endl;
 			// we found the column in the correlated map!
 			// update the binding and reduce the depth by 1
 			bound_colref.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
 			bound_colref.depth--;
+            std::cout << "Updated binding: [" << bound_colref.binding.table_index << "." << bound_colref.binding.column_index << "]" << std::endl;
+            std::cout << "Decrement depth to: " << bound_colref.depth << std::endl;
 		}
 	} else if (child.type == ExpressionType::SUBQUERY) {
+        std::cout << "Rec Subquery" << std::endl;
 		// we encountered another subquery: rewrite recursively
 		D_ASSERT(child.GetExpressionClass() == ExpressionClass::BOUND_SUBQUERY);
 		auto &bound_subquery = child.Cast<BoundSubqueryExpression>();
 		RewriteCorrelatedRecursive rewrite(bound_subquery, base_binding, correlated_map);
+        std::cout << "Calling recursive RewriteCorrelatedSubquery" << std::endl;
 		rewrite.RewriteCorrelatedSubquery(bound_subquery);
 	}
 }

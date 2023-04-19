@@ -6,6 +6,24 @@
 #include "duckdb/planner/expression/list.hpp"
 #include "duckdb/planner/expression_iterator.hpp"
 
+#include "duckdb/planner/expression_binder/lateral_binder.hpp"
+#include "duckdb/planner/expression_binder/relation_binder.hpp"
+#include "duckdb/planner/expression_binder/returning_binder.hpp"
+#include "duckdb/planner/expression_binder/alter_binder.hpp"
+#include "duckdb/planner/expression_binder/group_binder.hpp"
+#include "duckdb/planner/expression_binder/where_binder.hpp"
+#include "duckdb/planner/expression_binder/aggregate_binder.hpp"
+#include "duckdb/planner/expression_binder/constant_binder.hpp"
+#include "duckdb/planner/expression_binder/table_function_binder.hpp"
+#include "duckdb/planner/expression_binder/update_binder.hpp"
+#include "duckdb/planner/expression_binder/check_binder.hpp"
+#include "duckdb/planner/expression_binder/base_select_binder.hpp"
+#include "duckdb/planner/expression_binder/insert_binder.hpp"
+#include "duckdb/planner/expression_binder/index_binder.hpp"
+
+
+#include <iostream>
+
 namespace duckdb {
 
 ExpressionBinder::ExpressionBinder(Binder &binder, ClientContext &context, bool replace_binder)
@@ -73,7 +91,68 @@ BindResult ExpressionBinder::BindExpression(unique_ptr<ParsedExpression> *expr, 
 	}
 }
 
+static void PrintBinder(ExpressionBinder* binder)
+{
+    if (dynamic_cast<LateralBinder*>(binder))
+    {
+        std::cout << "LateralBinder" << std::endl;	
+    }
+    if (dynamic_cast<RelationBinder*>(binder))
+    {
+        std::cout << "RelationBinder" << std::endl;		
+    }
+    if (dynamic_cast<ReturningBinder*>(binder))
+    {
+        std::cout << "ReturningBinder" << std::endl;	
+    }
+    if (dynamic_cast<AlterBinder*>(binder))
+    {
+        std::cout << "AlterBinder" << std::endl;	
+    }
+    if (dynamic_cast<GroupBinder*>(binder))
+    {
+        std::cout << "GroupBinder" << std::endl;	
+    }
+    if (dynamic_cast<WhereBinder*>(binder))
+    {
+        std::cout << "WhereBinder" << std::endl;	
+    }
+    if (dynamic_cast<AggregateBinder*>(binder))
+    {
+        std::cout << "AggregateBinder" << std::endl;	
+    }
+    if (dynamic_cast<ConstantBinder*>(binder))
+    {
+        std::cout << "ConstantBinder" << std::endl;	
+    }
+    if (dynamic_cast<TableFunctionBinder*>(binder))
+    {
+        std::cout << "TableFunctionBinder" << std::endl;	
+    }
+    if (dynamic_cast<UpdateBinder*>(binder))
+    {
+        std::cout << "UpdateBinder" << std::endl;	
+    }
+    if (dynamic_cast<CheckBinder*>(binder))
+    {
+        std::cout << "CheckBinder" << std::endl;		
+    }
+    if (dynamic_cast<BaseSelectBinder*>(binder))
+    {
+        std::cout << "BaseSelectBinder" << std::endl;	
+    }
+    if (dynamic_cast<InsertBinder*>(binder))
+    {
+        std::cout << "InsertBinder" << std::endl;	
+    }
+    if (dynamic_cast<IndexBinder*>(binder))
+    {
+        std::cout << "IndexBinder" << std::endl;	
+    }
+}
+
 bool ExpressionBinder::BindCorrelatedColumns(unique_ptr<ParsedExpression> &expr) {
+    std::cout << "BindCorrelatedColumns: " << expr->ToString() << std::endl;
 	// try to bind in one of the outer queries, if the binding error occurred in a subquery
 	auto &active_binders = binder.GetActiveBinders();
 	// make a copy of the set of binders, so we can restore it later
@@ -83,9 +162,12 @@ bool ExpressionBinder::BindCorrelatedColumns(unique_ptr<ParsedExpression> &expr)
 	bool success = false;
 	while (!active_binders.empty()) {
 		auto &next_binder = active_binders.back();
+        std::cout << "Current Binder: ";
+        PrintBinder(next_binder);
 		ExpressionBinder::QualifyColumnNames(next_binder->binder, expr);
 		auto bind_result = next_binder->Bind(&expr, depth);
 		if (bind_result.empty()) {
+            std::cout << "Bound at depth: " << depth << std::endl;
 			success = true;
 			break;
 		}
@@ -106,9 +188,14 @@ void ExpressionBinder::BindChild(unique_ptr<ParsedExpression> &expr, idx_t depth
 }
 
 void ExpressionBinder::ExtractCorrelatedExpressions(Binder &binder, Expression &expr) {
-	if (expr.type == ExpressionType::BOUND_COLUMN_REF) {
+    std::cout << "ExtractCorrelatedExpr" << std::endl;
+    if (expr.type == ExpressionType::BOUND_COLUMN_REF) {
+        std::cout << "Found BoundColumnRef: " << expr.ToString() << std::endl;
 		auto &bound_colref = expr.Cast<BoundColumnRefExpression>();
+        std::cout << "Depth: " << bound_colref.depth << std::endl;
 		if (bound_colref.depth > 0) {
+            std::cout << "Depth > 0" << std::endl;
+            std::cout << "Adding as CorrelatedColumn to binder" << std::endl;
 			binder.AddCorrelatedColumn(CorrelatedColumnInfo(bound_colref));
 		}
 	}
@@ -234,6 +321,8 @@ string ExpressionBinder::Bind(unique_ptr<ParsedExpression> *expr, idx_t depth, b
 	if (result.HasError()) {
 		return result.error;
 	}
+
+
 	// successfully bound: replace the node with a BoundExpression
 	*expr = make_uniq<BoundExpression>(std::move(result.expression));
 	auto &be = (*expr)->Cast<BoundExpression>();
@@ -241,6 +330,7 @@ string ExpressionBinder::Bind(unique_ptr<ParsedExpression> *expr, idx_t depth, b
 	if (!alias.empty()) {
 		be.expr->alias = alias;
 	}
+    //std::cout << "Bound: " << (*expr)->ToString() << " at depth: " << depth << std::endl;
 	return string();
 }
 

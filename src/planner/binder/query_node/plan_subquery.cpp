@@ -15,6 +15,8 @@
 #include "duckdb/function/function_binder.hpp"
 #include "duckdb/planner/subquery/flatten_dependent_join.hpp"
 
+#include <iostream>
+
 namespace duckdb {
 
 static unique_ptr<Expression> PlanUncorrelatedSubquery(Binder &binder, BoundSubqueryExpression &expr,
@@ -405,6 +407,25 @@ void Binder::PlanSubqueries(unique_ptr<Expression> *expr_ptr, unique_ptr<Logical
 unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> left, unique_ptr<LogicalOperator> right,
                                                     vector<CorrelatedColumnInfo> &correlated_columns,
                                                     JoinType join_type, unique_ptr<Expression> condition) {
+
+    vector<CorrelatedColumnInfo> current_correlated_columns;
+
+    std::cout << "PlanLateralJoin!" << std::endl;
+    std::cout << "Correlated Columns are: " << std::endl;
+    for (auto& col : correlated_columns)
+    {
+        std::cout << col.name << " at depth: " << col.depth << std::endl;
+    }
+
+    for (auto& col : correlated_columns)
+    {
+        if (col.depth == 1)
+        {
+            current_correlated_columns.push_back(col);
+        }
+    }
+
+
 	// scan the right operator for correlated columns
 	// correlated LATERAL JOIN
 	vector<JoinCondition> conditions;
@@ -415,8 +436,8 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
 		                                             arbitrary_expressions);
 	}
 
-	auto perform_delim = PerformDuplicateElimination(*this, correlated_columns);
-	auto delim_join = CreateDuplicateEliminatedJoin(correlated_columns, join_type, std::move(left), perform_delim);
+	auto perform_delim = PerformDuplicateElimination(*this, current_correlated_columns);
+	auto delim_join = CreateDuplicateEliminatedJoin(current_correlated_columns, join_type, std::move(left), perform_delim);
 
 	FlattenDependentJoins flatten(*this, correlated_columns, perform_delim);
 
@@ -435,7 +456,7 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
 	D_ASSERT(delim_join->conditions.empty());
 	delim_join->conditions = std::move(conditions);
 	// then add the delim join conditions
-	CreateDelimJoinConditions(*delim_join, correlated_columns, plan_columns, flatten.delim_offset, perform_delim);
+	CreateDelimJoinConditions(*delim_join, current_correlated_columns, plan_columns, flatten.delim_offset, perform_delim);
 	delim_join->AddChild(std::move(dependent_join));
 
 	// check if there are any arbitrary expressions left
