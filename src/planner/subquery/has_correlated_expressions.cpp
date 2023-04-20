@@ -22,10 +22,6 @@ unique_ptr<Expression> HasCorrelatedExpressions::VisitReplace(BoundColumnRefExpr
 		return nullptr;
 	}
 
-	std::cout << "HasCorrelatedExpressions::VisitReplace" << std::endl;
-	std::cout << "Expr: " << expr.ToString() << std::endl;
-	std::cout << "Depth: " << expr.depth << std::endl;
-
 	if (expr.depth > 1) {
 		if (lateral) {
 			throw BinderException("Nested lateral joins are not (yet) supported");

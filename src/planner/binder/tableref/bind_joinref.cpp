@@ -146,12 +146,6 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 				all_correlated_columns.push_back(corr);
 			}
 		}
-		std::cout << "BindJoinRef: " << ref_string << std::endl;
-		std::cout << "\tAll Correlated Columns: " << std::endl;
-		for (auto corr : all_correlated_columns)
-		{
-			std::cout << "\t\tColumn: " << corr.name << " " << corr.depth << std::endl;
-		}
 
 		// Get ONLY the bindings for this level
 		std::vector<CorrelatedColumnInfo> my_correlated_columns;
@@ -164,12 +158,6 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 		}
 
 		result->correlated_columns = my_correlated_columns;
-
-		std::cout << "\tresult->correlated_columns: " << std::endl;
-		for (auto corr : result->correlated_columns)
-		{
-			std::cout << "\t\tColumn: " << corr.name << " " << corr.depth << std::endl;
-		}
 
 		result->lateral = !my_correlated_columns.empty();
 		if (result->lateral) {

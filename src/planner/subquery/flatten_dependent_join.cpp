@@ -28,9 +28,6 @@ FlattenDependentJoins::FlattenDependentJoins(Binder &binder, const vector<Correl
 
 bool FlattenDependentJoins::DetectCorrelatedExpressions(LogicalOperator *op, bool lateral) {
 
-	// std::cout << "FlattenDependentJoins::DetectCorrelatedExpressions" << std::endl;
-	// std::cout << op->ToString() << std::endl;
-
 	D_ASSERT(op);
 	// check if this entry has correlated expressions
 	HasCorrelatedExpressions visitor(correlated_columns, lateral);
