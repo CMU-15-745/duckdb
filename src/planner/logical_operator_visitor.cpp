@@ -4,8 +4,6 @@
 #include "duckdb/planner/expression_iterator.hpp"
 #include "duckdb/planner/operator/list.hpp"
 
-#include <iostream>
-
 namespace duckdb {
 
 void LogicalOperatorVisitor::VisitOperator(LogicalOperator &op) {
@@ -130,7 +128,6 @@ void LogicalOperatorVisitor::VisitOperatorExpressions(LogicalOperator &op) {
 void LogicalOperatorVisitor::VisitExpression(unique_ptr<Expression> *expression) {
 	auto &expr = **expression;
 	unique_ptr<Expression> result;
-	
 	switch (expr.GetExpressionClass()) {
 	case ExpressionClass::BOUND_AGGREGATE:
 		result = VisitReplace((BoundAggregateExpression &)expr, expression);

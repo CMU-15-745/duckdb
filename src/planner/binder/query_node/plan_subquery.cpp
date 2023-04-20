@@ -15,8 +15,6 @@
 #include "duckdb/function/function_binder.hpp"
 #include "duckdb/planner/subquery/flatten_dependent_join.hpp"
 
-#include <iostream>
-
 namespace duckdb {
 
 static unique_ptr<Expression> PlanUncorrelatedSubquery(Binder &binder, BoundSubqueryExpression &expr,
@@ -352,7 +350,6 @@ public:
 		return binder.PlanSubquery(expr, root);
 	}
 
-
 private:
 	unique_ptr<LogicalOperator> root;
 	Binder &binder;
@@ -410,7 +407,6 @@ void Binder::PlanSubqueries(unique_ptr<Expression> *expr_ptr, unique_ptr<Logical
 unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> left, unique_ptr<LogicalOperator> right,
                                                     vector<CorrelatedColumnInfo> &correlated_columns,
                                                     JoinType join_type, unique_ptr<Expression> condition) {
-
 	// scan the right operator for correlated columns
 	// correlated LATERAL JOIN
 	vector<JoinCondition> conditions;

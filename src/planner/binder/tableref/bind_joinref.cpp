@@ -13,8 +13,6 @@
 #include "duckdb/planner/expression_binder/lateral_binder.hpp"
 #include "duckdb/planner/query_node/bound_select_node.hpp"
 
-#include <iostream>
-
 namespace duckdb {
 
 static unique_ptr<ParsedExpression> BindColumn(Binder &binder, ClientContext &context, const string &alias,
@@ -121,7 +119,6 @@ static vector<string> RemoveDuplicateUsingColumns(const vector<string> &using_co
 }
 
 unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
-	auto ref_string = ref.ToString();
 	auto result = make_unique<BoundJoinRef>(ref.ref_type);
 	result->left_binder = Binder::CreateBinder(context, this);
 	result->right_binder = Binder::CreateBinder(context, this);
@@ -132,9 +129,6 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 	result->left = left_binder.Bind(*ref.left);
 	{
 		LateralBinder binder(left_binder, context);
-
-		auto right_str = ref.right->ToString();
-
 		result->right = right_binder.Bind(*ref.right);
 
 		// UNION left binder and right binder correlated columns 
@@ -295,9 +289,6 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 	bind_context.AddContext(std::move(right_binder.bind_context));
 
 	// TODO: Do we decrement here or before bind_context above???
-
-	// MoveCorrelatedExpressions(left_binder);
-	// MoveCorrelatedExpressions(right_binder);
 
 	for (auto col : left_binder.correlated_columns)
 	{

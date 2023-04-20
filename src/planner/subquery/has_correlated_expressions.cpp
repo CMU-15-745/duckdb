@@ -4,7 +4,6 @@
 #include "duckdb/planner/expression/bound_subquery_expression.hpp"
 
 #include <algorithm>
-#include <iostream>
 
 namespace duckdb {
 
@@ -21,7 +20,6 @@ unique_ptr<Expression> HasCorrelatedExpressions::VisitReplace(BoundColumnRefExpr
 	if (expr.depth == 0) {
 		return nullptr;
 	}
-
 	if (expr.depth > 1) {
 		if (lateral) {
 			throw BinderException("Nested lateral joins are not (yet) supported");
