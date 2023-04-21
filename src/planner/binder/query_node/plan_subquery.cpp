@@ -14,6 +14,9 @@
 #include "duckdb/planner/operator/logical_window.hpp"
 #include "duckdb/function/function_binder.hpp"
 #include "duckdb/planner/subquery/flatten_dependent_join.hpp"
+#include "duckdb/common/enums/logical_operator_type.hpp"
+#include "duckdb/planner/operator/logical_dependent_join.hpp"
+#include "duckdb/planner/expression_binder/lateral_binder.hpp"
 
 #include <iostream>
 
@@ -346,6 +349,13 @@ public:
 		if (!op.children.empty()) {
 			root = std::move(op.children[0]);
 			D_ASSERT(root);
+			if (root->type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
+				std::cout <<"RecursiveSubqueryPlanner::VisitOperator Found a LOGICAL_DEPENDENT_JOIN -- flattening" << std::endl;
+				auto& new_root = (LogicalDependentJoin &)*root;
+				root = binder.PlanLateralJoin(std::move(new_root.children[0]), std::move(new_root.children[1]), new_root.correlated_columns, new_root.join_type, std::move(new_root.condition));
+				std::cout << root->ToString() << std::endl;
+				std::cout <<"RecursiveSubqueryPlanner::VisitOperator Found a LOGICAL_DEPENDENT_JOIN -- Flattening Completed " << std::endl;
+			}
 			VisitOperatorExpressions(op);
 			op.children[0] = std::move(root);
 			for (idx_t i = 0; i < op.children.size(); i++) {
@@ -379,10 +389,13 @@ unique_ptr<Expression> Binder::PlanSubquery(BoundSubqueryExpression &expr, uniqu
 
 	// now we actually flatten the subquery
 	auto plan = std::move(subquery_root);
+
+
 	unique_ptr<Expression> result_expression;
 	if (!expr.IsCorrelated()) {
 		result_expression = PlanUncorrelatedSubquery(*this, expr, root, std::move(plan));
 	} else {
+		LateralBinder::ReduceExpressionDepth(*plan, expr.binder->correlated_columns);
 		result_expression = PlanCorrelatedSubquery(*this, expr, root, std::move(plan));
 	}
 	// finally, we recursively plan the nested subqueries (if there are any)

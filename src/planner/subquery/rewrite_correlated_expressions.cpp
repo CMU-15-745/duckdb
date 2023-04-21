@@ -29,7 +29,8 @@ unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRef
 	// through different binders
 	D_ASSERT(expr.depth == 1);
 	auto entry = correlated_map.find(expr.binding);
-	D_ASSERT(entry != correlated_map.end());
+	if (entry == correlated_map.end()) {return nullptr;}
+	// D_ASSERT(entry != correlated_map.end());
 
 	expr.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
 	expr.depth = 0;
@@ -85,7 +86,7 @@ void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelated
 			// update the binding and reduce the depth by 1
 			std::cout << "DECREMENT DURING FLATTENING!!!" << std::endl;
 			std::cout << child.ToString() << std::endl;
-			std::cout << "Depth from " << bound_colref.depth << " to " << (bound_colref.depth-1) << std::endl;  
+			std::cout << "Depth from " << bound_colref.depth << " to " << (bound_colref.depth-1) << std::endl;
 			bound_colref.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
 			bound_colref.depth--;
 		}

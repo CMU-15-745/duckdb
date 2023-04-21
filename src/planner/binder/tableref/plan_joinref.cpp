@@ -10,6 +10,7 @@
 #include "duckdb/planner/operator/logical_asof_join.hpp"
 #include "duckdb/planner/operator/logical_comparison_join.hpp"
 #include "duckdb/planner/operator/logical_cross_product.hpp"
+#include "duckdb/planner/operator/logical_dependent_join.hpp"
 #include "duckdb/planner/operator/logical_filter.hpp"
 #include "duckdb/planner/operator/logical_positional_join.hpp"
 #include "duckdb/planner/tableref/bound_joinref.hpp"
@@ -252,15 +253,29 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 		std::swap(left, right);
 	}
 	if (ref.lateral) {
+		std::cout << "In Binder::PlanJoinRef (lateral join) (plan_subquery, " << plan_subquery << ")"<< std::endl;
 		// lateral join
-		std::cout << "STARTING PlanLateralJoin" << std::endl;
+		std::cout << "Checking plan_subquery" << std::endl;
 		// std::cout << "\tLeft Plan: \n" << left->ToString() << std::endl;
 		// std::cout << "\tRight Plan: \n" << right->ToString() << std::endl;
-
-		auto res = PlanLateralJoin(std::move(left), std::move(right), ref.correlated_columns, ref.type,
-		                       std::move(ref.condition));
-		std::cout << "COMPLETED PlanLateralJoin" << std::endl;
-		return res;
+		if (!plan_subquery) {
+			has_unplanned_subqueries = true;
+			std::cout << "In Binder::PlanJoinRef Creating LogicalDependentJoin "<< std::endl;
+			return LogicalDependentJoin::Create(std::move(left),
+																					std::move(right),
+																					ref.correlated_columns,
+																					ref.type,
+																					std::move(ref.condition));
+		} else {
+			std::cout << "In Binder::PlanJoinRef Creating LateralJoin "<< std::endl;
+			auto res = PlanLateralJoin(std::move(left),
+																 std::move(right),
+																 ref.correlated_columns,
+																 ref.type,
+														 		 std::move(ref.condition));
+			std::cout << "COMPLETED PlanLateralJoin" << std::endl;
+			return res;
+		}
 	}
 	switch (ref.ref_type) {
 	case JoinRefType::CROSS:

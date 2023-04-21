@@ -22,9 +22,6 @@ unique_ptr<Expression> HasCorrelatedExpressions::VisitReplace(BoundColumnRefExpr
 		return nullptr;
 	}
 
-	std::cout << "HasCorrelatedExpressions::VisitReplace" << std::endl;
-	std::cout << "Expr: " << expr.ToString() << std::endl;
-	std::cout << "Depth: " << expr.depth << std::endl;
 
 	if (expr.depth > 1) {
 		if (lateral) {
@@ -32,9 +29,21 @@ unique_ptr<Expression> HasCorrelatedExpressions::VisitReplace(BoundColumnRefExpr
 		}
 		throw InternalException("Expression with depth > 1 detected in non-lateral join");
 	}
+	// Note: This is added, since we only want to set has_correlated_expressions to true when the BoundSubqueryExpression
+	// has the same bindings as one of the correlated_columns from the left hand side (correlated_columns is the
+	// correlated_columns from left hand side)
+	bool found_match = false;
+	for (idx_t i = 0; i < correlated_columns.size(); i++) {
+		if (correlated_columns[i].binding == expr.binding) {
+			found_match = true;
+			break;
+		}
+	}
+	std::cout << "HasCorrelatedExpressions::VisitReplace" << std::endl;
+	std::cout << "Expr: " << expr.ToString() << " Depth: " << expr.depth << " Found Matching" << found_match << std::endl;
 	// correlated column reference
 	D_ASSERT(expr.depth == 1);
-	has_correlated_expressions = true;
+	has_correlated_expressions = found_match;
 	return nullptr;
 }
 
@@ -45,8 +54,11 @@ unique_ptr<Expression> HasCorrelatedExpressions::VisitReplace(BoundSubqueryExpre
 	}
 	// check if the subquery contains any of the correlated expressions that we are concerned about in this node
 	for (idx_t i = 0; i < correlated_columns.size(); i++) {
+		std::cout << "HasCorrelatedExpressions::VisitReplace BoundSubqueryExpression " << correlated_columns[i].name << " " << correlated_columns[i].depth << " " << std::endl;
+		auto t = std::find(expr.binder->correlated_columns.begin(), expr.binder->correlated_columns.end(), correlated_columns[i]);
 		if (std::find(expr.binder->correlated_columns.begin(), expr.binder->correlated_columns.end(),
 		              correlated_columns[i]) != expr.binder->correlated_columns.end()) {
+			std::cout << "HasCorrelatedExpressions::VisitReplace BoundSubqueryExpression Found a match in BoundSubqueryExpression " << t->name << " " << t->depth << " " << std::endl;
 			has_correlated_expressions = true;
 			break;
 		}
