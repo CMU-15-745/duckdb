@@ -322,9 +322,8 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 
 	for (auto col : left_binder.correlated_columns)
 	{
-		if (col.depth > 1)
+		if (col.depth >= 1)
 		{
-			col.depth--;
 			AddCorrelatedColumn(col);
 		}
 	}

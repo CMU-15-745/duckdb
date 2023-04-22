@@ -8,8 +8,8 @@
 
 namespace duckdb {
 
-HasCorrelatedExpressions::HasCorrelatedExpressions(const vector<CorrelatedColumnInfo> &correlated, bool lateral)
-    : has_correlated_expressions(false), lateral(lateral), correlated_columns(correlated) {
+HasCorrelatedExpressions::HasCorrelatedExpressions(const vector<CorrelatedColumnInfo> &correlated, bool lateral, idx_t join_depth)
+    : has_correlated_expressions(false), lateral(lateral), correlated_columns(correlated), join_depth(join_depth) {
 }
 
 void HasCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
@@ -18,12 +18,14 @@ void HasCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 
 unique_ptr<Expression> HasCorrelatedExpressions::VisitReplace(BoundColumnRefExpression &expr,
                                                               unique_ptr<Expression> *expr_ptr) {
-	if (expr.depth == 0) {
+	if (expr.depth <= join_depth) {
 		return nullptr;
 	}
 
+	std::cout << "HasCorrelatedExpressions::VisitReplace join_depth " << join_depth << std::endl;
+	std::cout << "Expr: " << expr.ToString() << " Depth: " << expr.depth << std::endl;
 
-	if (expr.depth > 1) {
+	if (expr.depth > 1 + join_depth) {
 		if (lateral) {
 			throw BinderException("Nested lateral joins are not (yet) supported");
 		}
@@ -39,10 +41,8 @@ unique_ptr<Expression> HasCorrelatedExpressions::VisitReplace(BoundColumnRefExpr
 			break;
 		}
 	}
-	std::cout << "HasCorrelatedExpressions::VisitReplace" << std::endl;
-	std::cout << "Expr: " << expr.ToString() << " Depth: " << expr.depth << " Found Matching" << found_match << std::endl;
 	// correlated column reference
-	D_ASSERT(expr.depth == 1);
+	D_ASSERT(expr.depth == join_depth + 1);
 	has_correlated_expressions = found_match;
 	return nullptr;
 }

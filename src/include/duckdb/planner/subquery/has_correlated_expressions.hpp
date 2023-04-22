@@ -16,7 +16,7 @@ namespace duckdb {
 //! Helper class to recursively detect correlated expressions inside a single LogicalOperator
 class HasCorrelatedExpressions : public LogicalOperatorVisitor {
 public:
-	explicit HasCorrelatedExpressions(const vector<CorrelatedColumnInfo> &correlated, bool lateral = false);
+	explicit HasCorrelatedExpressions(const vector<CorrelatedColumnInfo> &correlated, bool lateral = false, idx_t join_depth = 0);
 
 	void VisitOperator(LogicalOperator &op) override;
 
@@ -28,6 +28,7 @@ protected:
 	unique_ptr<Expression> VisitReplace(BoundSubqueryExpression &expr, unique_ptr<Expression> *expr_ptr) override;
 
 	const vector<CorrelatedColumnInfo> &correlated_columns;
+	idx_t join_depth;
 };
 
 } // namespace duckdb

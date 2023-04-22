@@ -237,14 +237,14 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 
 	auto left = CreatePlan(*ref.left);
 	auto right = CreatePlan(*ref.right);
-	if (!ref.lateral /*&& !ref.correlated_columns.empty()*/) {
+	// if (!ref.lateral && !ref.correlated_columns.empty()) {
 		// non-lateral join with correlated columns
 		// this happens if there is a join (or cross product) in a correlated subquery
 		// due to the lateral binder the expression depth of all correlated columns in the "ref.correlated_columns" set
 		// is 1 too high
 		// we reduce expression depth of all columns in the "ref.correlated_columns" set by 1
-		LateralBinder::ReduceExpressionDepth(*right, ref.correlated_columns);
-	}
+	//   LateralBinder::ReduceExpressionDepth(*right, ref.correlated_columns);
+	// }
 	if (ref.type == JoinType::RIGHT && ref.ref_type != JoinRefType::ASOF &&
 	    ClientConfig::GetConfig(context).enable_optimizer) {
 		// we turn any right outer joins into left outer joins for optimization purposes

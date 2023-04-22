@@ -10,8 +10,9 @@
 namespace duckdb {
 
 RewriteCorrelatedExpressions::RewriteCorrelatedExpressions(ColumnBinding base_binding,
-                                                           column_binding_map_t<idx_t> &correlated_map)
-    : base_binding(base_binding), correlated_map(correlated_map) {
+                                                           column_binding_map_t<idx_t> &correlated_map,
+                                                           idx_t join_depth)
+    : base_binding(base_binding), correlated_map(correlated_map), join_depth(join_depth) {
 }
 
 void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
@@ -20,17 +21,18 @@ void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 
 unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRefExpression &expr,
                                                                   unique_ptr<Expression> *expr_ptr) {
-	if (expr.depth == 0) {
+	std::cout << "RewriteCorrelatedExpressions::VisitReplace(BoundColumnRefExpression) " << expr.ToString() << " JoinDepth " << join_depth << std::endl;
+	if (expr.depth <= join_depth) {
 		return nullptr;
 	}
+	std::cout << "RewriteCorrelatedExpressions::VisitReplace(BoundColumnRefExpression) " << expr.ToString() << " Depth " << expr.depth << std::endl;
 	// correlated column reference
 	// replace with the entry referring to the duplicate eliminated scan
 	// if this assertion occurs it generally means the correlated expressions were not propagated correctly
 	// through different binders
-	D_ASSERT(expr.depth == 1);
+	D_ASSERT(expr.depth == 1+join_depth);
 	auto entry = correlated_map.find(expr.binding);
-	if (entry == correlated_map.end()) {return nullptr;}
-	// D_ASSERT(entry != correlated_map.end());
+	D_ASSERT(entry != correlated_map.end());
 
 	expr.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
 	expr.depth = 0;
@@ -39,9 +41,11 @@ unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRef
 
 unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundSubqueryExpression &expr,
                                                                   unique_ptr<Expression> *expr_ptr) {
+	std::cout << "RewriteCorrelatedExpressions::VisitReplace(BoundSubqueryExpression) " << expr.ToString() << std::endl;
 	if (!expr.IsCorrelated()) {
 		return nullptr;
 	}
+	std::cout << "RewriteCorrelatedExpressions::VisitReplace(BoundSubqueryExpression) " << expr.ToString()  << " IsCorrelated "<< std::endl;
 	// subquery detected within this subquery
 	// recursively rewrite it using the RewriteCorrelatedRecursive class
 	RewriteCorrelatedRecursive rewrite(expr, base_binding, correlated_map);

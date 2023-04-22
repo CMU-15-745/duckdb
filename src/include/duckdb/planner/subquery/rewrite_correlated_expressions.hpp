@@ -17,7 +17,7 @@ namespace duckdb {
 //! Helper class to rewrite correlated expressions within a single LogicalOperator
 class RewriteCorrelatedExpressions : public LogicalOperatorVisitor {
 public:
-	RewriteCorrelatedExpressions(ColumnBinding base_binding, column_binding_map_t<idx_t> &correlated_map);
+	RewriteCorrelatedExpressions(ColumnBinding base_binding, column_binding_map_t<idx_t> &correlated_map, idx_t join_depth);
 
 	void VisitOperator(LogicalOperator &op) override;
 
@@ -43,6 +43,7 @@ private:
 private:
 	ColumnBinding base_binding;
 	column_binding_map_t<idx_t> &correlated_map;
+	idx_t join_depth;
 };
 
 //! Helper class that rewrites COUNT aggregates into a CASE expression turning NULL into 0 after a LEFT OUTER JOIN

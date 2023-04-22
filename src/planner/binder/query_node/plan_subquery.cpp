@@ -395,7 +395,6 @@ unique_ptr<Expression> Binder::PlanSubquery(BoundSubqueryExpression &expr, uniqu
 	if (!expr.IsCorrelated()) {
 		result_expression = PlanUncorrelatedSubquery(*this, expr, root, std::move(plan));
 	} else {
-		LateralBinder::ReduceExpressionDepth(*plan, expr.binder->correlated_columns);
 		result_expression = PlanCorrelatedSubquery(*this, expr, root, std::move(plan));
 	}
 	// finally, we recursively plan the nested subqueries (if there are any)

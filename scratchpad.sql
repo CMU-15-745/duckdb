@@ -8,11 +8,11 @@ SELECT *
            ()) > 1000;
 
 
-SELECT *
-    FROM (SELECT 42) t(i),
-         (SELECT *
-            FROM (SELECT 142 k) t3(k),
-                 (SELECT k) t4(l)) t2(j);
+select *
+    from (select 42) t(i),
+         (select *
+            from (select 142 k) t3(k),
+                 (select k) t4(l)) t2(j);
 
 -- Bind SELECT_STMT;
 -- Bind FROM_CLAUSE;
@@ -144,18 +144,28 @@ SELECT *
           (SELECT *
              FROM (SELECT 142 k) t3(k),
                   (SELECT 1 WHERE i+k=0) t4(l));
- SELECT *
-    FROM (SELECT 42) t4(m)
-    WHERE m IN (
-        SELECT j FROM
-        (SELECT 42) t(i),
-        (SELECT m * 2) t2(j));
+
+-- DO NOT DELETE THESE, HEAVILY USED FOR TESTING
+SELECT *
+FROM (SELECT 42) t4(m)
+WHERE m IN (
+    SELECT j FROM
+    (SELECT 21*m) t(i),
+    (SELECT m) t2(j));
+
+SELECT *
+FROM (SELECT 42) t4(m)
+WHERE m IN (
+    SELECT j FROM
+    (SELECT 21*m) t(i),
+    (SELECT i) t2(j));
+
+-- DO NOT DELETE THESE, HEAVILY USED FOR TESTING
 
  SELECT *
  FROM (SELECT 10) t(i)
  WHERE i IN (SELECT k
-             FROM (SELECT 20) t(k)
-             WHERE k IN (SELECT l
+             FROM (SELECT 20) t(k) WHERE k IN (SELECT l
                          FROM (SELECT 30) t4(l)
                          WHERE i-k IN (SELECT * FROM (SELECT i+100))
              ));
@@ -173,7 +183,7 @@ SELECT *
  FROM (SELECT 42) t(i)
  WHERE i IN (SELECT k
              FROM (SELECT 42) t(k)
-             WHERE k IN (SELECT l
+             WHERE k IN (SELECT i
                          FROM (SELECT i) t4
                          WHERE i-k IN (SELECT * FROM (SELECT i))
              ));
