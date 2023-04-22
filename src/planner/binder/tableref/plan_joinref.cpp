@@ -234,6 +234,9 @@ unique_ptr<LogicalOperator> LogicalComparisonJoin::CreateJoin(JoinType type, Joi
 unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 
 	std::cout << "STARTING PlanJoinRef " << std::endl;
+	if (ref.condition) {
+		std::cout << "Join Conditions " << ref.condition->ToString() << std::endl;
+	}
 
 	auto left = CreatePlan(*ref.left);
 	auto right = CreatePlan(*ref.right);

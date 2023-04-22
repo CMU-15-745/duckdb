@@ -462,7 +462,9 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
 	// first we check which logical operators have correlated expressions in the first place
 	flatten.DetectCorrelatedExpressions(right.get(), true);
 	// now we push the dependent join down
+	std::cout <<"Right side before flattening \n" << right->ToString() << std::endl;
 	auto dependent_join = flatten.PushDownDependentJoin(std::move(right));
+	std::cout <<"Right side after flattening \n" << dependent_join->ToString() << std::endl;
 
 	// now the dependent join is fully eliminated
 	// we only need to create the join conditions between the LHS and the RHS

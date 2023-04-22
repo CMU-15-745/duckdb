@@ -157,7 +157,7 @@ SELECT *
 FROM (SELECT 42) t4(m)
 WHERE m IN (
     SELECT j FROM
-    (SELECT 21*m) t(i),
+    (SELECT m) t(i),
     (SELECT i) t2(j));
 
 -- DO NOT DELETE THESE, HEAVILY USED FOR TESTING
