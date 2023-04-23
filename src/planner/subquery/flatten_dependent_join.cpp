@@ -275,10 +275,6 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 		}
 	}
 	case LogicalOperatorType::LOGICAL_CROSS_PRODUCT: {
-		// Note: We moved this code here from plan_joinref.cpp
-		// std::cout << "PushDownDependentJoinInternal for LOGICAL_CROSS_PRODUCT" << std::endl;
-		// LateralBinder::ReduceExpressionDepth(*plan->children[1], correlated_columns);
-
 		// cross product
 		// push into both sides of the plan
 		bool left_has_correlation = has_correlated_expressions.find(plan->children[0].get())->second;

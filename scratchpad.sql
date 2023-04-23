@@ -146,19 +146,20 @@ SELECT *
                   (SELECT 1 WHERE i+k=0) t4(l));
 
 -- DO NOT DELETE THESE, HEAVILY USED FOR TESTING
-SELECT *
-FROM (SELECT 42) t4(m)
-WHERE m IN (
-    SELECT j FROM
-    (SELECT 21*m) t(i),
-    (SELECT m) t2(j));
+select *
+from (select 42) t4(m),
+     (select 64) t5(n)
+where m in (
+    select j from
+    (select 21*m*n) t(i),
+    (select m*n) t2(j));
 
 SELECT *
 FROM (SELECT 42) t4(m)
 WHERE m IN (
     SELECT j FROM
-    (SELECT m) t(i),
-    (SELECT i) t2(j));
+    (SELECT m*2) t(i),
+    (SELECT i/2) t2(j));
 
 -- DO NOT DELETE THESE, HEAVILY USED FOR TESTING
 

@@ -137,15 +137,31 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 
 		result->right = right_binder.Bind(*ref.right);
 
-		// UNION left binder and right binder correlated columns
-		auto all_correlated_columns = right_binder.correlated_columns;
-		for (auto corr : left_binder.correlated_columns)
-		{
-			if (std::find(all_correlated_columns.begin(), all_correlated_columns.end(), corr) == all_correlated_columns.end())
-			{
-				all_correlated_columns.push_back(corr);
+		bool is_lateral = false;
+		auto all_correlated_columns = vector<CorrelatedColumnInfo>();
+		// Note: Handle Left side
+		for(auto& cor_col: left_binder.correlated_columns) {
+			if (cor_col.depth >= 1) {
+				// This means that correlations are with columns from the parents
+				all_correlated_columns.push_back(cor_col);
 			}
 		}
+
+		for(auto& cor_col: right_binder.correlated_columns) {
+			if (cor_col.depth == 1) {
+				// This means that correlations are between left and right child of the join
+				is_lateral = true;
+			}
+			if  (cor_col.depth >= 1) {
+				// This means that there are correlations either from the left or the parent
+				auto idx = std::find(all_correlated_columns.begin(), all_correlated_columns.end(), cor_col);
+				if (idx == all_correlated_columns.end()) {
+					all_correlated_columns.push_back(cor_col);
+				}
+			}
+		}
+		result->lateral = is_lateral;
+
 		std::cout << "BindJoinRef: " << ref_string << std::endl;
 		std::cout << "\tAll Correlated Columns: " << std::endl;
 		for (auto corr : all_correlated_columns)
@@ -153,33 +169,8 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 			std::cout << "\t\tColumn: " << corr.name << " " << corr.depth << std::endl;
 		}
 
-		// Get ONLY the bindings for this level
-		std::vector<CorrelatedColumnInfo> current_correlated_columns;
-		for (auto corr : all_correlated_columns)
-		{
-			if (corr.depth >= 1)
-			{
-				current_correlated_columns.push_back(corr);
-			}
-		}
+		result->correlated_columns = all_correlated_columns;
 
-		result->correlated_columns = current_correlated_columns;
-
-		std::cout << "\tresult->correlated_columns: " << std::endl;
-		for (auto corr : result->correlated_columns)
-		{
-			std::cout << "\t\tColumn: " << corr.name << " " << corr.depth << std::endl;
-		}
-
-		bool is_lateral = false;
-		for (auto corr : current_correlated_columns)
-		{
-			if (corr.depth == 1)
-			{
-				is_lateral  = true;
-			}
-		}
-		result->lateral = is_lateral;
 		if (result->lateral) {
 			std::cout << "BindJoinRef: Encountered a Lateral" << std::endl;
 			// lateral join: can only be an INNER or LEFT join
