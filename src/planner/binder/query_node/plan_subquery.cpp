@@ -352,7 +352,7 @@ public:
 			if (root->type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
 				std::cout <<"RecursiveSubqueryPlanner::VisitOperator Found a LOGICAL_DEPENDENT_JOIN -- flattening" << std::endl;
 				auto& new_root = (LogicalDependentJoin &)*root;
-				root = binder.PlanLateralJoin(std::move(new_root.children[0]), std::move(new_root.children[1]), new_root.correlated_columns, new_root.join_type, std::move(new_root.condition));
+				root = binder.PlanLateralJoin(std::move(new_root.children[0]), std::move(new_root.children[1]), new_root.correlated_columns, new_root.join_type, std::move(new_root.join_condition), std::move(new_root.conditions));
 				std::cout << root->ToString() << std::endl;
 				std::cout <<"RecursiveSubqueryPlanner::VisitOperator Found a LOGICAL_DEPENDENT_JOIN -- Flattening Completed " << std::endl;
 			}
@@ -434,9 +434,12 @@ void Binder::PlanSubqueries(unique_ptr<Expression> *expr_ptr, unique_ptr<Logical
 	}
 }
 
-unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> left, unique_ptr<LogicalOperator> right,
+unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> left,
+																										unique_ptr<LogicalOperator> right,
                                                     vector<CorrelatedColumnInfo> &correlated_columns,
-                                                    JoinType join_type, unique_ptr<Expression> condition) {
+                                                    JoinType join_type,
+                                                    unique_ptr<Expression> condition,
+                                                    vector<JoinCondition> comp_conditions) {
 
 	std::cout << "\tcorrelated_columns: " << std::endl;
 	for (auto corr : correlated_columns)
@@ -452,6 +455,9 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
 		// extract join conditions, if there are any
 		LogicalComparisonJoin::ExtractJoinConditions(join_type, left, right, std::move(condition), conditions,
 		                                             arbitrary_expressions);
+	}
+	for(auto& comp_condition: comp_conditions) {
+		conditions.push_back(std::move(comp_condition));
 	}
 
 	auto perform_delim = PerformDuplicateElimination(*this, correlated_columns);

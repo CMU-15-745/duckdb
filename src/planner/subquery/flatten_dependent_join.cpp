@@ -404,6 +404,7 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 			    correlated_columns[i].type, ColumnBinding(right_binding.table_index, right_binding.column_index + i));
 
 			if (join.type == LogicalOperatorType::LOGICAL_COMPARISON_JOIN ||
+					join.type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN ||
 			    join.type == LogicalOperatorType::LOGICAL_ASOF_JOIN) {
 				JoinCondition cond;
 				cond.left = std::move(left);
@@ -424,6 +425,8 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 		// then we replace any correlated expressions with the corresponding entry in the correlated_map
 		RewriteCorrelatedExpressions rewriter(right_binding, correlated_map, join_depth);
 		rewriter.VisitOperator(*plan);
+		// TODO: Find the right place to place this RemoveCorrelatedColumnsFromDependentJoin
+		RemoveCorrelatedColumnsFromDependentJoin(plan);
 		return plan;
 	}
 	case LogicalOperatorType::LOGICAL_LIMIT: {

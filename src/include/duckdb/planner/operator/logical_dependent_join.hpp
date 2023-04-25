@@ -14,16 +14,16 @@
 #include "duckdb/planner/joinside.hpp"
 #include "duckdb/planner/operator/logical_join.hpp"
 #include "duckdb/planner/binder.hpp"
+#include "duckdb/planner/operator/logical_comparison_join.hpp"
 
 namespace duckdb {
 
-//! LogicalCrossProduct represents a cross product between two relations
-class LogicalDependentJoin : public LogicalJoin {
+class LogicalDependentJoin : public LogicalComparisonJoin {
 public:
-	LogicalDependentJoin (unique_ptr<LogicalOperator> left, unique_ptr<LogicalOperator> right, vector<CorrelatedColumnInfo> correlated_columns, JoinType type, unique_ptr<Expression> condition);
+	explicit LogicalDependentJoin (unique_ptr<LogicalOperator> left, unique_ptr<LogicalOperator> right, vector<CorrelatedColumnInfo> correlated_columns, JoinType type, unique_ptr<Expression> condition);
 
 	//! The conditions of the join
-	unique_ptr<Expression> condition;
+	unique_ptr<Expression> join_condition;
 	//! Used for duplicate-eliminated joins
 	vector<CorrelatedColumnInfo> correlated_columns;
 

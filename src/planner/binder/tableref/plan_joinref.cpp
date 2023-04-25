@@ -275,7 +275,8 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 																 std::move(right),
 																 ref.correlated_columns,
 																 ref.type,
-														 		 std::move(ref.condition));
+														 		 std::move(ref.condition),
+														 		 vector<JoinCondition>());
 			std::cout << "COMPLETED PlanLateralJoin" << std::endl;
 			return res;
 		}

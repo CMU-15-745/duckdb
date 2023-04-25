@@ -8,9 +8,9 @@ LogicalDependentJoin::LogicalDependentJoin (
 		vector<CorrelatedColumnInfo> correlated_columns,
 		JoinType type,
 		unique_ptr<Expression> condition):
-	LogicalJoin(type, LogicalOperatorType::LOGICAL_DEPENDENT_JOIN),
-	correlated_columns(correlated_columns),
-	condition(std::move(condition)) {
+	LogicalComparisonJoin(type, LogicalOperatorType::LOGICAL_DEPENDENT_JOIN),
+	join_condition(std::move(condition)),
+	correlated_columns(correlated_columns) {
 	children.push_back(std::move(left));
 	children.push_back(std::move(right));
 }
@@ -25,9 +25,15 @@ unique_ptr<LogicalOperator> LogicalDependentJoin::Create(
 }
 
 void LogicalDependentJoin::Serialize(FieldWriter &writer) const {
-	LogicalJoin::Serialize(writer);
-	// writer.WriteRegularSerializableList(correlated_columns);
-	// writer.WriteSerializable(condition);
+	LogicalComparisonJoin::Serialize(writer);
+	if (type == LogicalOperatorType::LOGICAL_COMPARISON_JOIN) {
+		// if the delim join has no delim columns anymore it is turned into a regular comparison join
+		return;
+	}
+	if (join_condition) {
+		writer.WriteString(join_condition->ToString());
+	}
+	writer.WriteRegularSerializableList(conditions);
 }
 
 } // namespace duckdb
