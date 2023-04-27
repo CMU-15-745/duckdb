@@ -5,7 +5,7 @@ namespace duckdb {
 LogicalDependentJoin::LogicalDependentJoin (
 		unique_ptr<LogicalOperator> left,
 		unique_ptr<LogicalOperator> right,
-		vector<CorrelatedColumnInfo> correlated_columns,
+		vector<CorrelatedColumnInfo>& correlated_columns,
 		JoinType type,
 		unique_ptr<Expression> condition):
 	LogicalComparisonJoin(type, LogicalOperatorType::LOGICAL_DEPENDENT_JOIN),
@@ -18,7 +18,7 @@ LogicalDependentJoin::LogicalDependentJoin (
 unique_ptr<LogicalOperator> LogicalDependentJoin::Create(
 		unique_ptr<LogicalOperator> left,
 		unique_ptr<LogicalOperator> right,
-		vector<CorrelatedColumnInfo> correlated_columns,
+		vector<CorrelatedColumnInfo>& correlated_columns,
 		JoinType type,
 		unique_ptr<Expression> condition) {
 	return make_unique<LogicalDependentJoin>(std::move(left), std::move(right), correlated_columns, type, std::move(condition));

@@ -5,7 +5,9 @@
 #include "duckdb/planner/expression/bound_constant_expression.hpp"
 #include "duckdb/planner/expression/bound_operator_expression.hpp"
 #include "duckdb/planner/expression/bound_subquery_expression.hpp"
+#include "duckdb/planner/query_node/bound_select_node.hpp"
 #include "duckdb/planner/expression_iterator.hpp"
+#include "duckdb/planner/tableref/bound_joinref.hpp"
 
 namespace duckdb {
 
@@ -67,6 +69,23 @@ void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelated
 		auto entry = correlated_map.find(corr.binding);
 		if (entry != correlated_map.end()) {
 			corr.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
+		}
+	}
+	// TODO: Cleanup and find a better way to do this
+	auto& node = *expr.subquery;
+	if (node.type == QueryNodeType::SELECT_NODE) {
+		auto &bound_select = (BoundSelectNode&)node;
+		if (bound_select.from_table) {
+			BoundTableRef& table_ref = *bound_select.from_table;
+			if (table_ref.type == TableReferenceType::JOIN) {
+				auto &bound_join = (BoundJoinRef&)table_ref;
+				for (auto& corr: bound_join.correlated_columns) {
+					auto entry = correlated_map.find(corr.binding);
+					if (entry != correlated_map.end()) {
+						corr.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
+					}
+				}
+			}
 		}
 	}
 	// now rewrite any correlated BoundColumnRef expressions inside the subquery

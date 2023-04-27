@@ -111,7 +111,10 @@ void FlattenDependentJoins::RemoveCorrelatedColumnsFromDependentJoin(unique_ptr<
 				new_correlated_columns.push_back(corr_info);
 			}
 		}
-		dependent_join.correlated_columns = new_correlated_columns;
+		dependent_join.correlated_columns.clear();
+		for (auto& cor_info: new_correlated_columns) {
+			dependent_join.correlated_columns.push_back(cor_info);
+		}
 	}
 }
 

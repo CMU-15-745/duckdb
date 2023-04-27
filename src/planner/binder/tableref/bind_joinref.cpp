@@ -247,6 +247,7 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 
 	case JoinRefType::CROSS:
 	case JoinRefType::POSITIONAL:
+	case JoinRefType::DEPENDENT:
 		break;
 	}
 	extra_using_columns = RemoveDuplicateUsingColumns(extra_using_columns);
