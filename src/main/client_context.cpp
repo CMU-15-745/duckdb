@@ -47,6 +47,7 @@
 #include "duckdb/transaction/meta_transaction.hpp"
 #include "duckdb/transaction/transaction.hpp"
 #include "duckdb/transaction/transaction_manager.hpp"
+#include <iostream>
 
 namespace duckdb {
 
@@ -373,6 +374,7 @@ double ClientContext::GetProgress() {
 unique_ptr<PendingQueryResult> ClientContext::PendingPreparedStatement(ClientContextLock &lock,
                                                                        shared_ptr<PreparedStatementData> statement_p,
                                                                        PendingQueryParameters parameters) {
+	std::cout << "In PendingPreparedStatement (Executing the statement)" << std::endl;
 	D_ASSERT(active_query);
 	auto &statement = *statement_p;
 	if (ValidChecker::IsInvalidated(ActiveTransaction()) && statement.properties.requires_valid_transaction) {
@@ -393,9 +395,11 @@ unique_ptr<PendingQueryResult> ClientContext::PendingPreparedStatement(ClientCon
 		transaction.ModifyDatabase(entry);
 	}
 
+	std::cout << "Binding Values during execution" << std::endl;
 	// bind the bound values before execution
 	statement.Bind(parameters.parameters ? *parameters.parameters : vector<Value>());
 
+	std::cout << "Building Executor" << std::endl;
 	active_query->executor = make_unique<Executor>(*this);
 	auto &executor = *active_query->executor;
 	if (config.enable_progress_bar) {
@@ -410,6 +414,7 @@ unique_ptr<PendingQueryResult> ClientContext::PendingPreparedStatement(ClientCon
 		query_progress = 0;
 	}
 	auto stream_result = parameters.allow_stream_result && statement.properties.allow_stream_result;
+	std::cout << "Initializing Executor" << std::endl;
 	if (!stream_result && statement.properties.return_type == StatementReturnType::QUERY_RESULT) {
 		unique_ptr<PhysicalResultCollector> collector;
 		auto &config = ClientConfig::GetConfig(*this);
@@ -428,7 +433,9 @@ unique_ptr<PendingQueryResult> ClientContext::PendingPreparedStatement(ClientCon
 	auto pending_result =
 	    make_unique<PendingQueryResult>(shared_from_this(), *statement_p, std::move(types), stream_result);
 	active_query->prepared = std::move(statement_p);
+	std::cout << "Executor Execution Start" << std::endl;
 	active_query->open_result = pending_result.get();
+	std::cout << "Executor Execution Done" << std::endl;
 	return pending_result;
 }
 
@@ -693,7 +700,9 @@ unique_ptr<PendingQueryResult> ClientContext::PendingStatementOrPreparedStatemen
 			break;
 		}
 	}
-	return PendingStatementOrPreparedStatement(lock, query, std::move(statement), prepared, parameters);
+	auto c = PendingStatementOrPreparedStatement(lock, query, std::move(statement), prepared, parameters);
+	std::cout <<"PendingStatementOrPreparedStatementInternal PendingStatementOrPreparedStatement Done" << std::endl;
+	return c;
 }
 
 unique_ptr<PendingQueryResult> ClientContext::PendingStatementOrPreparedStatement(
@@ -702,6 +711,7 @@ unique_ptr<PendingQueryResult> ClientContext::PendingStatementOrPreparedStatemen
 	unique_ptr<PendingQueryResult> result;
 
 	try {
+		std::cout << "PendingStatementOrPreparedStatement BeginQueryInternal" << std::endl;
 		BeginQueryInternal(lock, query);
 	} catch (FatalException &ex) {
 		// fatal exceptions invalidate the entire database
@@ -716,11 +726,13 @@ unique_ptr<PendingQueryResult> ClientContext::PendingStatementOrPreparedStatemen
 	}
 	// start the profiler
 	auto &profiler = QueryProfiler::Get(*this);
+	std::cout << "PendingStatementOrPreparedStatement BeginQueryInternal" << std::endl;
 	profiler.StartQuery(query, IsExplainAnalyze(statement ? statement.get() : prepared->unbound_statement.get()));
 
 	bool invalidate_query = true;
 	try {
 		if (statement) {
+			std::cout << "PendingStatementOrPreparedStatement PendingStatementInternal" << std::endl;
 			result = PendingStatementInternal(lock, query, std::move(statement), parameters);
 		} else {
 			if (prepared->RequireRebind(*this, *parameters.parameters)) {
@@ -753,11 +765,13 @@ unique_ptr<PendingQueryResult> ClientContext::PendingStatementOrPreparedStatemen
 		result = make_unique<PendingQueryResult>(PreservedError(ex));
 	}
 	if (result->HasError()) {
+		std::cout << "PendingStatementOrPreparedStatement Query Failed" << std::endl;
 		// query failed: abort now
 		EndQueryInternal(lock, false, invalidate_query);
 		return result;
 	}
 	D_ASSERT(active_query->open_result == result.get());
+	std::cout << "PendingStatementOrPreparedStatement Query Succeeded" << std::endl;
 	return result;
 }
 
@@ -891,7 +905,10 @@ unique_ptr<PendingQueryResult> ClientContext::PendingQueryInternal(ClientContext
 	if (verify) {
 		return PendingStatementOrPreparedStatementInternal(lock, query, std::move(statement), prepared, parameters);
 	} else {
-		return PendingStatementOrPreparedStatement(lock, query, std::move(statement), prepared, parameters);
+		std::cout <<"PendingStatementOrPreparedStatementInternal PendingStatementOrPreparedStatement Start" << std::endl;
+		auto c = PendingStatementOrPreparedStatement(lock, query, std::move(statement), prepared, parameters);
+		std::cout <<"PendingStatementOrPreparedStatementInternal PendingStatementOrPreparedStatement Done" << std::endl;
+		return c;
 	}
 }
 

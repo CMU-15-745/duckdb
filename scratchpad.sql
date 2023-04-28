@@ -27,11 +27,11 @@ i = 42, j = 142
 -- Bind Right Side of JoinRef
 
 
-SELECT * FROM (SELECT 42) t(i)
-WHERE i IN (SELECT l FROM (SELECT 42) t(l) ,
-                          (SELECT i * 2) t2(j),
-                          (SELECT i + j) t3(k)
-            WHERE k IN (SELECT * FROM (SELECT 42 l) t4(l) WHERE i-k = 0));
+select * from (select 42) t(i)
+where i in (select l from (select 42) t(l) ,
+                          (select i * 2) t2(j),
+                          (select i + j) t3(k)
+            where k in (select * from (select 42 l) t4(l) where i-k = 0));
 
 No Rows
 
@@ -57,17 +57,17 @@ i = 42, j = 22, l = 1
 
 -- SUCCESS --
 SELECT *
-     FROM (SELECT 42) t1(i),
+     FROM (SELECT 64) t1(i),
           (SELECT 22) t2(j),
           (SELECT 1 WHERE i=64) t3(l);
 
 No Rows
 
 -- SUCCESS --
-SELECT *
-     FROM (SELECT 42) t1(i),
-          (SELECT 22) t2(j),
-          (SELECT i+j WHERE i+j=64) t3(l);
+select *
+     from (select 42) t1(i),
+          (select 22) t2(j),
+          (select i+j where i+j=64) t3(l);
 
 i = 44, j = 22, l = 64
 
@@ -105,7 +105,7 @@ SELECT *
                     (SELECT 1 WHERE i+k=0) t4(l));
 
 No Rows
-	
+
 -- SUCCESS --
 SELECT *
      FROM (SELECT *
@@ -124,13 +124,13 @@ SELECT *
                          (SELECT 1 WHERE i+k=0) t4(l)));
 
 No Rows
-
+-- FAIL --
 SELECT *
 FROM (SELECT *
       FROM (SELECT 42) t(i),
            (SELECT *
             FROM (SELECT 142 k) t3(k),
-                 (SELECT 1 WHERE i=0) t4(l)));
+                 (SELECT 1 WHERE i-k=0) t4(l)));
 
 No Rows
 
@@ -144,17 +144,11 @@ FROM (SELECT 42) t(i),
 
 No Rows
 
-SELECT *
-    FROM (SELECT 42) t(i)
-    WHERE i IN (SELECT l
-                FROM (SELECT 42) t(l) ,
-                     (SELECT i * 2) t2(j),
-                     (SELECT i + j) t3(k)
-                WHERE k IN (SELECT l
-                                  FROM (SELECT 42 l) t4(l),
-                                       (SELECT l+5) t5(n)
-                                  WHERE i-k IN (SELECT * FROM (SELECT i+5))
-            ));
+select i
+    from (select 42) t(i)
+    where i*2 in (select j from (select i) t(l) ,
+                     (select l+i) t2(j),
+                     (select i+j) t3(k));
 
 No Rows
 
@@ -184,16 +178,16 @@ from (select 42) t4(m),
 where m in (
     select j from
     (select 21*m*n) t(i),
-    (select m*n) t2(j));
+    (select m) t2(j));
 
 No Rows
 
 SELECT *
 FROM (SELECT 42) t4(m)
 WHERE m IN (
-    SELECT j FROM
-    (SELECT m*2) t(i),
-    (SELECT i/2) t2(j));
+    SELECT i FROM
+    (SELECT m) t(i),
+    (SELECT i*m/2 * 2/m) t2(j));
 
 m = 42
 
@@ -226,7 +220,7 @@ i = 42
              FROM (SELECT 42) t(k)
              WHERE k IN (SELECT i
                          FROM (SELECT i) t4
-                         WHERE i-k IN (SELECT * FROM (SELECT i))
+                         WHERE i*2-k IN (SELECT * FROM (SELECT i))
              ));
 
 No Rows
@@ -257,3 +251,8 @@ WHERE i IN (SELECT l FROM (SELECT 42) t(l)
                                         ));
 
 No Rows
+
+SELECT (SELECT (SELECT k
+                FROM (SELECT i) t2(j),
+                     (SELECT j) t3(k)))
+FROM (SELECT 42) t(i);

@@ -15,7 +15,7 @@ string LogicalComparisonJoin::ParamsToString() const {
 		result += "\n";
 		auto expr = make_unique<BoundComparisonExpression>(condition.comparison, condition.left->Copy(),
 		                                                   condition.right->Copy());
-		result += expr->ToString();
+		result += expr->ToString() + ":" + LogicalTypeIdToString(expr->return_type.id());
 	}
 
 	return result;

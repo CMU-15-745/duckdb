@@ -14,6 +14,9 @@ void LogicalDelimJoin::Serialize(FieldWriter &writer) const {
 		// if the delim join has no delim columns anymore it is turned into a regular comparison join
 		return;
 	}
+	for (auto& expr: duplicate_eliminated_columns) {
+		writer.WriteString(LogicalTypeIdToString(expr->return_type.id()));
+	}
 	writer.WriteSerializableList(duplicate_eliminated_columns);
 }
 

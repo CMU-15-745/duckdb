@@ -130,6 +130,7 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 		// now create the duplicate eliminated scan for this node
 		auto left_columns = plan->GetColumnBindings().size();
 		auto delim_index = binder.GenerateTableIndex();
+		std::cout << "Creating new TableIndex: " << delim_index << std::endl;
 		this->base_binding = ColumnBinding(delim_index, 0);
 		this->delim_offset = left_columns;
 		this->data_offset = 0;

@@ -8,6 +8,7 @@
 #include "duckdb/main/query_profiler.hpp"
 #include "duckdb/planner/expression/bound_function_expression.hpp"
 #include "duckdb/planner/operator/logical_extension_operator.hpp"
+#include <iostream>
 
 namespace duckdb {
 
@@ -38,27 +39,37 @@ PhysicalPlanGenerator::~PhysicalPlanGenerator() {
 unique_ptr<PhysicalOperator> PhysicalPlanGenerator::CreatePlan(unique_ptr<LogicalOperator> op) {
 	auto &profiler = QueryProfiler::Get(context);
 
+	std::cout << "PhysicalPlanGenerator ColumnBindingResolver Start" << std::endl;
 	// first resolve column references
 	profiler.StartPhase("column_binding");
 	ColumnBindingResolver resolver;
 	resolver.VisitOperator(*op);
 	profiler.EndPhase();
+	std::cout << "PhysicalPlanGenerator ColumnBindingResolver Done" << std::endl;
 
+	std::cout << "PhysicalPlanGenerator ResolveOperatorType Start" << std::endl;
 	// now resolve types of all the operators
 	profiler.StartPhase("resolve_types");
 	op->ResolveOperatorTypes();
 	profiler.EndPhase();
+	std::cout << "PhysicalPlanGenerator ResolveOperatorType Done" << std::endl;
 
+	std::cout << "PhysicalPlanGenerator DependencyExtractor Start" << std::endl;
 	// extract dependencies from the logical plan
 	DependencyExtractor extractor(dependencies);
 	extractor.VisitOperator(*op);
+	std::cout << "PhysicalPlanGenerator DependencyExtractor Done" << std::endl;
 
+	std::cout << "PhysicalPlanGenerator CreatePlan Start" << std::endl;
 	// then create the main physical plan
 	profiler.StartPhase("create_plan");
 	auto plan = CreatePlan(*op);
 	profiler.EndPhase();
+	std::cout << "PhysicalPlanGenerator CreatePlan Done" << std::endl;
 
+	std::cout << "PhysicalPlanGenerator Verify Start" << std::endl;
 	plan->Verify();
+	std::cout << "PhysicalPlanGenerator Verify Done" << std::endl;
 	return plan;
 }
 

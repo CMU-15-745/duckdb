@@ -72,7 +72,7 @@ PhysicalProjection::CreateJoinProjection(vector<LogicalType> proj_types, const v
 string PhysicalProjection::ParamsToString() const {
 	string extra_info;
 	for (auto &expr : select_list) {
-		extra_info += expr->GetName() + "\n";
+		extra_info += expr->GetName() + ":" + LogicalTypeIdToString(expr->return_type.id()) + "\n";
 	}
 	return extra_info;
 }

@@ -39,7 +39,7 @@ string LogicalOperator::ParamsToString() const {
 		if (i > 0) {
 			result += "\n";
 		}
-		result += expressions[i]->GetName();
+		result += expressions[i]->GetName() + ":" + LogicalTypeIdToString(expressions[i]->return_type.id());
 	}
 	return result;
 }

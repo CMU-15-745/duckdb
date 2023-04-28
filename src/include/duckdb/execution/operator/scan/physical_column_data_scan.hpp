@@ -32,6 +32,7 @@ public:
 
 public:
 	void BuildPipelines(Pipeline &current, MetaPipeline &meta_pipeline) override;
+	string ParamsToString() const override;
 };
 
 } // namespace duckdb

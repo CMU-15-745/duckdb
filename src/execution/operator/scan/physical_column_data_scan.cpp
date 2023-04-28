@@ -67,4 +67,15 @@ void PhysicalColumnDataScan::BuildPipelines(Pipeline &current, MetaPipeline &met
 	state.SetPipelineSource(current, this);
 }
 
+
+string PhysicalColumnDataScan::ParamsToString() const {
+	string all_types = "";
+	all_types += "\n";
+	for (auto& t : types) {
+		all_types += LogicalTypeIdToString(t.id()) + ", ";
+	}
+	all_types += "\n";
+	return all_types;
+}
+
 } // namespace duckdb

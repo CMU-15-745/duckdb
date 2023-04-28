@@ -73,6 +73,7 @@ void LogicalOperatorVisitor::EnumerateExpressions(LogicalOperator &op,
 	}
 	case LogicalOperatorType::LOGICAL_ASOF_JOIN:
 	case LogicalOperatorType::LOGICAL_DELIM_JOIN:
+	case LogicalOperatorType::LOGICAL_DEPENDENT_JOIN:
 	case LogicalOperatorType::LOGICAL_COMPARISON_JOIN: {
 		if (op.type == LogicalOperatorType::LOGICAL_DELIM_JOIN) {
 			auto &delim_join = (LogicalDelimJoin &)op;
