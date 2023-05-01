@@ -27,6 +27,9 @@ i = 42, j = 142
 -- Bind Right Side of JoinRef
 
 
+
+
+
 select * from (select 42) t(i)
 where i in (select l from (select 42) t(l) ,
                           (select i * 2) t2(j),
@@ -59,7 +62,7 @@ i = 42, j = 22, l = 1
 SELECT *
      FROM (SELECT 64) t1(i),
           (SELECT 22) t2(j),
-          (SELECT 1 WHERE i=64) t3(l);
+          (SELECT 1 WHERE i+j=64) t3(l);
 
 No Rows
 
@@ -150,7 +153,7 @@ select i
                      (select l+i) t2(j),
                      (select i+j) t3(k));
 
-No Rows
+i = 42
 
 SELECT *
 FROM (SELECT 42) t(i)
@@ -180,7 +183,7 @@ where m in (
     (select 21*m*n) t(i),
     (select m) t2(j));
 
-No Rows
+m = 42, n = 64
 
 SELECT *
 FROM (SELECT 42) t4(m)
@@ -196,7 +199,8 @@ m = 42
  SELECT *
  FROM (SELECT 10) t(i)
  WHERE i IN (SELECT k
-             FROM (SELECT 20) t(k) WHERE k IN (SELECT l
+             FROM (SELECT 20) t(k)
+             WHERE k IN (SELECT l
                          FROM (SELECT 30) t4(l)
                          WHERE i-k IN (SELECT * FROM (SELECT i+100))
              ));
@@ -223,7 +227,7 @@ i = 42
                          WHERE i*2-k IN (SELECT * FROM (SELECT i))
              ));
 
-No Rows
+i = 42
 
  SELECT *
  FROM (SELECT 42) t1(i),
@@ -244,15 +248,26 @@ SELECT * FROM (SELECT 42) t(i)
 WHERE i IN (SELECT l FROM (SELECT 42) t(l)
             WHERE l IN (SELECT l FROM (SELECT 42 l) t4(l),
                                        (SELECT l+5) t5(n)
-                                        WHERE i-l IN (SELECT k FROM (SELECT i+5),
+                                        WHERE i+2*l IN (SELECT k FROM (SELECT i+5),
                                                                     (SELECT i * 2) t2(j),
                                                                     (SELECT i + j) t3(k)
-                                                                WHERE l-k IN (SELECT i+10))
+                                                                WHERE k-l IN (SELECT i*2))
                                         ));
+i = 42
 
-No Rows
 
 SELECT (SELECT (SELECT k
                 FROM (SELECT i) t2(j),
                      (SELECT j) t3(k)))
 FROM (SELECT 42) t(i);
+? = 42
+
+select i
+    from (select 42) t(i)
+    where i in (select l
+                    from (select 42) t(l) ,
+                         (select 42) t2(j),
+                         (select i+j+l) t3(k));
+i = 42
+
+

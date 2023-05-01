@@ -315,13 +315,27 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 		join->children.push_back(std::move(plan->children[1]));
 		return std::move(join);
 	}
-  // TODO: Not sure if this is correct, need to check
-  case LogicalOperatorType::LOGICAL_DEPENDENT_JOIN: {
-    std::cout <<"FlattenDependentJoins::PushDownDependentJoinInternal Flattening through dependent_join" << std::endl;
+  	// TODO: Not sure if this is correct, need to check
+  	case LogicalOperatorType::LOGICAL_DEPENDENT_JOIN: {
+    	std::cout <<"FlattenDependentJoins::PushDownDependentJoinInternal Flattening through dependent_join" << std::endl;
 		auto &dependent_join = (LogicalJoin &)*plan;
-  	if (!((dependent_join.join_type == JoinType::INNER) || (dependent_join.join_type == JoinType::LEFT))) {
-			throw Exception("Dependent join can only be INNER or LEFT type");
-  	}
+		if (!((dependent_join.join_type == JoinType::INNER) || (dependent_join.join_type == JoinType::LEFT))) {
+				throw Exception("Dependent join can only be INNER or LEFT type");
+		}
+		auto &join = (LogicalJoin &)*plan;
+		D_ASSERT(plan->children.size() == 2);
+		// Push all the bindings down to the left side so the right side knows where to refer DELIM_GET from
+		plan->children[0] = PushDownDependentJoinInternal(std::move(plan->children[0]), parent_propagate_null_values, join_depth);
+
+		// Normal rewriter like in other joins
+		RewriteCorrelatedExpressions rewriter(this->base_binding, correlated_map, join_depth);
+		rewriter.VisitOperator(*plan);
+
+		// Recursive rewriter to visit right side of lateral join and update bindings from left
+		RewriteCorrelatedExpressions recursive_rewriter(this->base_binding, correlated_map, join_depth+1, true);
+		recursive_rewriter.VisitOperator(*plan->children[1]);
+
+		return plan;
 	}
 	case LogicalOperatorType::LOGICAL_ANY_JOIN:
 	case LogicalOperatorType::LOGICAL_ASOF_JOIN:
