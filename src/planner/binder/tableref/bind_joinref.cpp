@@ -140,12 +140,12 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 		bool is_lateral = false;
 		auto all_correlated_columns = vector<CorrelatedColumnInfo>();
 		// Note: Handle Left side
-		for(auto& cor_col: left_binder.correlated_columns) {
-			if (cor_col.depth >= 1) {
-				// This means that correlations are with columns from the parents
-				all_correlated_columns.push_back(cor_col);
-			}
-		}
+//		for(auto& cor_col: left_binder.correlated_columns) {
+//			if (cor_col.depth >= 1) {
+//				// This means that correlations are with columns from the parents
+//				all_correlated_columns.push_back(cor_col);
+//			}
+//		}
 
 		for(auto& cor_col: right_binder.correlated_columns) {
 			if (cor_col.depth == 1) {
@@ -154,10 +154,10 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 			}
 			if  (cor_col.depth >= 1) {
 				// This means that there are correlations either from the left or the parent
-				auto idx = std::find(all_correlated_columns.begin(), all_correlated_columns.end(), cor_col);
-				if (idx == all_correlated_columns.end()) {
+//				auto idx = std::find(all_correlated_columns.begin(), all_correlated_columns.end(), cor_col);
+//				if (idx == all_correlated_columns.end()) {
 					all_correlated_columns.push_back(cor_col);
-				}
+//				}
 			}
 		}
 		result->lateral = is_lateral;
