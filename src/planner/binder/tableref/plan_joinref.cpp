@@ -16,12 +16,14 @@
 #include "duckdb/planner/tableref/bound_joinref.hpp"
 #include "duckdb/main/client_context.hpp"
 #include "duckdb/planner/expression_binder/lateral_binder.hpp"
+#include "duckdb/planner/subquery/recursive_subquery_planner.hpp"
+
 
 #include <iostream>
 
 namespace duckdb {
 
-//! Create a JoinCondition from a comparison
+    //! Create a JoinCondition from a comparison
 static bool CreateJoinCondition(Expression &expr, const unordered_set<idx_t> &left_bindings,
                                 const unordered_set<idx_t> &right_bindings, vector<JoinCondition> &conditions) {
 	// comparison
@@ -238,8 +240,11 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 		std::cout << "Join Conditions " << ref.condition->ToString() << std::endl;
 	}
 
+	auto old_plan_subquery = plan_subquery;
+	plan_subquery = false;
 	auto left = CreatePlan(*ref.left);
 	auto right = CreatePlan(*ref.right);
+	plan_subquery = old_plan_subquery;
 	// if (!ref.lateral && !ref.correlated_columns.empty()) {
 		// non-lateral join with correlated columns
 		// this happens if there is a join (or cross product) in a correlated subquery
@@ -278,6 +283,12 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 														 		 std::move(ref.condition),
 														 		 vector<JoinCondition>());
 			std::cout << "COMPLETED PlanLateralJoin" << std::endl;
+			if (has_unplanned_subqueries) {
+				RecursiveSubqueryPlanner plan(*this);
+				std::cout <<"RecursiveSubqueryPlanner Starting VisitOperator" <<std::endl;
+				plan.VisitOperator(*res);
+				std::cout <<"RecursiveSubqueryPlanner Finished VisitOperator" <<std::endl;
+			}
 			return res;
 		}
 	}

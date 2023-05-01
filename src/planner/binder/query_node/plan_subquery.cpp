@@ -17,6 +17,7 @@
 #include "duckdb/common/enums/logical_operator_type.hpp"
 #include "duckdb/planner/operator/logical_dependent_join.hpp"
 #include "duckdb/planner/expression_binder/lateral_binder.hpp"
+#include "duckdb/planner/subquery/recursive_subquery_planner.hpp"
 
 #include <iostream>
 
@@ -341,39 +342,29 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
 	}
 }
 
-class RecursiveSubqueryPlanner : public LogicalOperatorVisitor {
-public:
-	explicit RecursiveSubqueryPlanner(Binder &binder) : binder(binder) {
-	}
-	void VisitOperator(LogicalOperator &op) override {
-		if (!op.children.empty()) {
-			root = std::move(op.children[0]);
-			D_ASSERT(root);
-			if (root->type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
-				std::cout <<"RecursiveSubqueryPlanner::VisitOperator Found a LOGICAL_DEPENDENT_JOIN -- flattening" << std::endl;
-				auto& new_root = (LogicalDependentJoin &)*root;
-				root = binder.PlanLateralJoin(std::move(new_root.children[0]), std::move(new_root.children[1]), new_root.correlated_columns, new_root.join_type, std::move(new_root.join_condition), std::move(new_root.conditions));
-				std::cout << root->ToString() << std::endl;
-				std::cout <<"RecursiveSubqueryPlanner::VisitOperator Found a LOGICAL_DEPENDENT_JOIN -- Flattening Completed " << std::endl;
-			}
-			VisitOperatorExpressions(op);
-			op.children[0] = std::move(root);
-			for (idx_t i = 0; i < op.children.size(); i++) {
-				D_ASSERT(op.children[i]);
-				VisitOperator(*op.children[i]);
-			}
+void RecursiveSubqueryPlanner::VisitOperator(LogicalOperator &op) {
+	if (!op.children.empty()) {
+		root = std::move(op.children[0]);
+		D_ASSERT(root);
+		if (root->type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
+			std::cout <<"RecursiveSubqueryPlanner::VisitOperator Found a LOGICAL_DEPENDENT_JOIN -- flattening" << std::endl;
+			auto& new_root = (LogicalDependentJoin &)*root;
+			root = binder.PlanLateralJoin(std::move(new_root.children[0]), std::move(new_root.children[1]), new_root.correlated_columns, new_root.join_type, std::move(new_root.join_condition), std::move(new_root.conditions));
+			std::cout << root->ToString() << std::endl;
+			std::cout <<"RecursiveSubqueryPlanner::VisitOperator Found a LOGICAL_DEPENDENT_JOIN -- Flattening Completed " << std::endl;
+		}
+		VisitOperatorExpressions(op);
+		op.children[0] = std::move(root);
+		for (idx_t i = 0; i < op.children.size(); i++) {
+			D_ASSERT(op.children[i]);
+			VisitOperator(*op.children[i]);
 		}
 	}
+}
 
-	unique_ptr<Expression> VisitReplace(BoundSubqueryExpression &expr, unique_ptr<Expression> *expr_ptr) override {
-		return binder.PlanSubquery(expr, root);
-	}
-
-
-private:
-	unique_ptr<LogicalOperator> root;
-	Binder &binder;
-};
+unique_ptr<Expression> RecursiveSubqueryPlanner::VisitReplace(BoundSubqueryExpression &expr, unique_ptr<Expression> *expr_ptr) {
+	return binder.PlanSubquery(expr, root);
+}
 
 unique_ptr<Expression> Binder::PlanSubquery(BoundSubqueryExpression &expr, unique_ptr<LogicalOperator> &root) {
 	D_ASSERT(root);

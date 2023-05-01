@@ -46,9 +46,9 @@ SELECT *
      FROM (SELECT 42) t(i),
           (SELECT *
                FROM (SELECT 142 k) t3(k),
-                    (SELECT 1 WHERE i+k=0) t4(l));
+                    (SELECT 1 WHERE k-i=100) t4(l));
 
-No Rows
+i = 42, k = 142, l = 1
 
 -- SUCCESS --
 SELECT *
@@ -124,19 +124,21 @@ SELECT *
           FROM (SELECT 42) t(i),
                (SELECT *
                     FROM (SELECT 142 k) t3(k),
-                         (SELECT 1 WHERE i+k=0) t4(l)));
+                         (SELECT 1 WHERE k-i=100) t4(l)));
 
-No Rows
+i = 42, j = 22, l = 1
+
 -- FAIL --
 SELECT *
 FROM (SELECT *
       FROM (SELECT 42) t(i),
            (SELECT *
             FROM (SELECT 142 k) t3(k),
-                 (SELECT 1 WHERE i-k=0) t4(l)));
+                 (SELECT 1 WHERE i-k=-100) t4(l)));
 
-No Rows
+i = 42, j = 22, l = 1
 
+-- FAIL --
 SELECT *
 FROM (SELECT 42) t(i),
      (SELECT *
