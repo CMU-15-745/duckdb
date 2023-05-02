@@ -45,8 +45,6 @@ BindResult ExpressionBinder::BindExpression(SubqueryExpression &expr, idx_t dept
 		auto subquery_binder = Binder::CreateBinder(context, &binder);
 		subquery_binder->can_contain_nulls = true;
 
-		auto expr_str = expr.ToString();
-
 		auto bound_node = subquery_binder->BindNode(*expr.subquery->node);
 		// check the correlated columns of the subquery for correlated columns with depth > 1
 		for (idx_t i = 0; i < subquery_binder->correlated_columns.size(); i++) {
