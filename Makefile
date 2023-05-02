@@ -591,6 +591,253 @@ duckdb_transformer_tableref/fast:
 .PHONY : duckdb_transformer_tableref/fast
 
 #=============================================================================
+# Target rules for targets named duckdb_core_functions
+
+# Build rule for target.
+duckdb_core_functions: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_core_functions
+.PHONY : duckdb_core_functions
+
+# fast build rule for target.
+duckdb_core_functions/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/CMakeFiles/duckdb_core_functions.dir/build.make src/core_functions/CMakeFiles/duckdb_core_functions.dir/build
+.PHONY : duckdb_core_functions/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_aggr_algebraic
+
+# Build rule for target.
+duckdb_aggr_algebraic: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_aggr_algebraic
+.PHONY : duckdb_aggr_algebraic
+
+# fast build rule for target.
+duckdb_aggr_algebraic/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/aggregate/algebraic/CMakeFiles/duckdb_aggr_algebraic.dir/build.make src/core_functions/aggregate/algebraic/CMakeFiles/duckdb_aggr_algebraic.dir/build
+.PHONY : duckdb_aggr_algebraic/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_aggr_distributive
+
+# Build rule for target.
+duckdb_aggr_distributive: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_aggr_distributive
+.PHONY : duckdb_aggr_distributive
+
+# fast build rule for target.
+duckdb_aggr_distributive/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/aggregate/distributive/CMakeFiles/duckdb_aggr_distributive.dir/build.make src/core_functions/aggregate/distributive/CMakeFiles/duckdb_aggr_distributive.dir/build
+.PHONY : duckdb_aggr_distributive/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_aggr_holistic
+
+# Build rule for target.
+duckdb_aggr_holistic: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_aggr_holistic
+.PHONY : duckdb_aggr_holistic
+
+# fast build rule for target.
+duckdb_aggr_holistic/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/aggregate/holistic/CMakeFiles/duckdb_aggr_holistic.dir/build.make src/core_functions/aggregate/holistic/CMakeFiles/duckdb_aggr_holistic.dir/build
+.PHONY : duckdb_aggr_holistic/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_aggr_nested
+
+# Build rule for target.
+duckdb_aggr_nested: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_aggr_nested
+.PHONY : duckdb_aggr_nested
+
+# fast build rule for target.
+duckdb_aggr_nested/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/aggregate/nested/CMakeFiles/duckdb_aggr_nested.dir/build.make src/core_functions/aggregate/nested/CMakeFiles/duckdb_aggr_nested.dir/build
+.PHONY : duckdb_aggr_nested/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_aggr_regr
+
+# Build rule for target.
+duckdb_aggr_regr: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_aggr_regr
+.PHONY : duckdb_aggr_regr
+
+# fast build rule for target.
+duckdb_aggr_regr/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/aggregate/regression/CMakeFiles/duckdb_aggr_regr.dir/build.make src/core_functions/aggregate/regression/CMakeFiles/duckdb_aggr_regr.dir/build
+.PHONY : duckdb_aggr_regr/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_func_bit
+
+# Build rule for target.
+duckdb_func_bit: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_bit
+.PHONY : duckdb_func_bit
+
+# fast build rule for target.
+duckdb_func_bit/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/scalar/bit/CMakeFiles/duckdb_func_bit.dir/build.make src/core_functions/scalar/bit/CMakeFiles/duckdb_func_bit.dir/build
+.PHONY : duckdb_func_bit/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_func_blob
+
+# Build rule for target.
+duckdb_func_blob: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_blob
+.PHONY : duckdb_func_blob
+
+# fast build rule for target.
+duckdb_func_blob/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/scalar/blob/CMakeFiles/duckdb_func_blob.dir/build.make src/core_functions/scalar/blob/CMakeFiles/duckdb_func_blob.dir/build
+.PHONY : duckdb_func_blob/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_func_date
+
+# Build rule for target.
+duckdb_func_date: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_date
+.PHONY : duckdb_func_date
+
+# fast build rule for target.
+duckdb_func_date/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/scalar/date/CMakeFiles/duckdb_func_date.dir/build.make src/core_functions/scalar/date/CMakeFiles/duckdb_func_date.dir/build
+.PHONY : duckdb_func_date/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_func_enum
+
+# Build rule for target.
+duckdb_func_enum: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_enum
+.PHONY : duckdb_func_enum
+
+# fast build rule for target.
+duckdb_func_enum/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/scalar/enum/CMakeFiles/duckdb_func_enum.dir/build.make src/core_functions/scalar/enum/CMakeFiles/duckdb_func_enum.dir/build
+.PHONY : duckdb_func_enum/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_func_generic
+
+# Build rule for target.
+duckdb_func_generic: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_generic
+.PHONY : duckdb_func_generic
+
+# fast build rule for target.
+duckdb_func_generic/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/scalar/generic/CMakeFiles/duckdb_func_generic.dir/build.make src/core_functions/scalar/generic/CMakeFiles/duckdb_func_generic.dir/build
+.PHONY : duckdb_func_generic/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_func_list
+
+# Build rule for target.
+duckdb_func_list: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_list
+.PHONY : duckdb_func_list
+
+# fast build rule for target.
+duckdb_func_list/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/scalar/list/CMakeFiles/duckdb_func_list.dir/build.make src/core_functions/scalar/list/CMakeFiles/duckdb_func_list.dir/build
+.PHONY : duckdb_func_list/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_func_map_nested
+
+# Build rule for target.
+duckdb_func_map_nested: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_map_nested
+.PHONY : duckdb_func_map_nested
+
+# fast build rule for target.
+duckdb_func_map_nested/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/scalar/map/CMakeFiles/duckdb_func_map_nested.dir/build.make src/core_functions/scalar/map/CMakeFiles/duckdb_func_map_nested.dir/build
+.PHONY : duckdb_func_map_nested/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_func_math
+
+# Build rule for target.
+duckdb_func_math: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_math
+.PHONY : duckdb_func_math
+
+# fast build rule for target.
+duckdb_func_math/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/scalar/math/CMakeFiles/duckdb_func_math.dir/build.make src/core_functions/scalar/math/CMakeFiles/duckdb_func_math.dir/build
+.PHONY : duckdb_func_math/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_func_ops
+
+# Build rule for target.
+duckdb_func_ops: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_ops
+.PHONY : duckdb_func_ops
+
+# fast build rule for target.
+duckdb_func_ops/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/scalar/operators/CMakeFiles/duckdb_func_ops.dir/build.make src/core_functions/scalar/operators/CMakeFiles/duckdb_func_ops.dir/build
+.PHONY : duckdb_func_ops/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_func_random
+
+# Build rule for target.
+duckdb_func_random: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_random
+.PHONY : duckdb_func_random
+
+# fast build rule for target.
+duckdb_func_random/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/scalar/random/CMakeFiles/duckdb_func_random.dir/build.make src/core_functions/scalar/random/CMakeFiles/duckdb_func_random.dir/build
+.PHONY : duckdb_func_random/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_func_string
+
+# Build rule for target.
+duckdb_func_string: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_string
+.PHONY : duckdb_func_string
+
+# fast build rule for target.
+duckdb_func_string/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/scalar/string/CMakeFiles/duckdb_func_string.dir/build.make src/core_functions/scalar/string/CMakeFiles/duckdb_func_string.dir/build
+.PHONY : duckdb_func_string/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_func_struct
+
+# Build rule for target.
+duckdb_func_struct: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_struct
+.PHONY : duckdb_func_struct
+
+# fast build rule for target.
+duckdb_func_struct/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/scalar/struct/CMakeFiles/duckdb_func_struct.dir/build.make src/core_functions/scalar/struct/CMakeFiles/duckdb_func_struct.dir/build
+.PHONY : duckdb_func_struct/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_func_union
+
+# Build rule for target.
+duckdb_func_union: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_union
+.PHONY : duckdb_func_union
+
+# fast build rule for target.
+duckdb_func_union/fast:
+	$(MAKE) $(MAKESILENT) -f src/core_functions/scalar/union/CMakeFiles/duckdb_func_union.dir/build.make src/core_functions/scalar/union/CMakeFiles/duckdb_func_union.dir/build
+.PHONY : duckdb_func_union/fast
+
+#=============================================================================
 # Target rules for targets named duckdb_function
 
 # Build rule for target.
@@ -617,19 +864,6 @@ duckdb_func_aggr/fast:
 .PHONY : duckdb_func_aggr/fast
 
 #=============================================================================
-# Target rules for targets named duckdb_aggr_algebraic
-
-# Build rule for target.
-duckdb_aggr_algebraic: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_aggr_algebraic
-.PHONY : duckdb_aggr_algebraic
-
-# fast build rule for target.
-duckdb_aggr_algebraic/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/aggregate/algebraic/CMakeFiles/duckdb_aggr_algebraic.dir/build.make src/function/aggregate/algebraic/CMakeFiles/duckdb_aggr_algebraic.dir/build
-.PHONY : duckdb_aggr_algebraic/fast
-
-#=============================================================================
 # Target rules for targets named duckdb_aggr_distr
 
 # Build rule for target.
@@ -641,45 +875,6 @@ duckdb_aggr_distr: cmake_check_build_system
 duckdb_aggr_distr/fast:
 	$(MAKE) $(MAKESILENT) -f src/function/aggregate/distributive/CMakeFiles/duckdb_aggr_distr.dir/build.make src/function/aggregate/distributive/CMakeFiles/duckdb_aggr_distr.dir/build
 .PHONY : duckdb_aggr_distr/fast
-
-#=============================================================================
-# Target rules for targets named duckdb_aggr_holistic
-
-# Build rule for target.
-duckdb_aggr_holistic: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_aggr_holistic
-.PHONY : duckdb_aggr_holistic
-
-# fast build rule for target.
-duckdb_aggr_holistic/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/aggregate/holistic/CMakeFiles/duckdb_aggr_holistic.dir/build.make src/function/aggregate/holistic/CMakeFiles/duckdb_aggr_holistic.dir/build
-.PHONY : duckdb_aggr_holistic/fast
-
-#=============================================================================
-# Target rules for targets named duckdb_aggr_nested
-
-# Build rule for target.
-duckdb_aggr_nested: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_aggr_nested
-.PHONY : duckdb_aggr_nested
-
-# fast build rule for target.
-duckdb_aggr_nested/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/aggregate/nested/CMakeFiles/duckdb_aggr_nested.dir/build.make src/function/aggregate/nested/CMakeFiles/duckdb_aggr_nested.dir/build
-.PHONY : duckdb_aggr_nested/fast
-
-#=============================================================================
-# Target rules for targets named duckdb_aggr_regr
-
-# Build rule for target.
-duckdb_aggr_regr: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_aggr_regr
-.PHONY : duckdb_aggr_regr
-
-# fast build rule for target.
-duckdb_aggr_regr/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/aggregate/regression/CMakeFiles/duckdb_aggr_regr.dir/build.make src/function/aggregate/regression/CMakeFiles/duckdb_aggr_regr.dir/build
-.PHONY : duckdb_aggr_regr/fast
 
 #=============================================================================
 # Target rules for targets named duckdb_func_cast
@@ -721,108 +916,43 @@ duckdb_func_scalar/fast:
 .PHONY : duckdb_func_scalar/fast
 
 #=============================================================================
-# Target rules for targets named duckdb_func_bit
+# Target rules for targets named duckdb_func_generic_main
 
 # Build rule for target.
-duckdb_func_bit: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_bit
-.PHONY : duckdb_func_bit
+duckdb_func_generic_main: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_generic_main
+.PHONY : duckdb_func_generic_main
 
 # fast build rule for target.
-duckdb_func_bit/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/scalar/bit/CMakeFiles/duckdb_func_bit.dir/build.make src/function/scalar/bit/CMakeFiles/duckdb_func_bit.dir/build
-.PHONY : duckdb_func_bit/fast
+duckdb_func_generic_main/fast:
+	$(MAKE) $(MAKESILENT) -f src/function/scalar/generic/CMakeFiles/duckdb_func_generic_main.dir/build.make src/function/scalar/generic/CMakeFiles/duckdb_func_generic_main.dir/build
+.PHONY : duckdb_func_generic_main/fast
 
 #=============================================================================
-# Target rules for targets named duckdb_func_blob
+# Target rules for targets named duckdb_func_list_nested
 
 # Build rule for target.
-duckdb_func_blob: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_blob
-.PHONY : duckdb_func_blob
+duckdb_func_list_nested: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_list_nested
+.PHONY : duckdb_func_list_nested
 
 # fast build rule for target.
-duckdb_func_blob/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/scalar/blob/CMakeFiles/duckdb_func_blob.dir/build.make src/function/scalar/blob/CMakeFiles/duckdb_func_blob.dir/build
-.PHONY : duckdb_func_blob/fast
+duckdb_func_list_nested/fast:
+	$(MAKE) $(MAKESILENT) -f src/function/scalar/list/CMakeFiles/duckdb_func_list_nested.dir/build.make src/function/scalar/list/CMakeFiles/duckdb_func_list_nested.dir/build
+.PHONY : duckdb_func_list_nested/fast
 
 #=============================================================================
-# Target rules for targets named duckdb_func_date
+# Target rules for targets named duckdb_func_ops_main
 
 # Build rule for target.
-duckdb_func_date: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_date
-.PHONY : duckdb_func_date
+duckdb_func_ops_main: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_ops_main
+.PHONY : duckdb_func_ops_main
 
 # fast build rule for target.
-duckdb_func_date/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/scalar/date/CMakeFiles/duckdb_func_date.dir/build.make src/function/scalar/date/CMakeFiles/duckdb_func_date.dir/build
-.PHONY : duckdb_func_date/fast
-
-#=============================================================================
-# Target rules for targets named duckdb_func_generic
-
-# Build rule for target.
-duckdb_func_generic: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_generic
-.PHONY : duckdb_func_generic
-
-# fast build rule for target.
-duckdb_func_generic/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/scalar/generic/CMakeFiles/duckdb_func_generic.dir/build.make src/function/scalar/generic/CMakeFiles/duckdb_func_generic.dir/build
-.PHONY : duckdb_func_generic/fast
-
-#=============================================================================
-# Target rules for targets named duckdb_func_list
-
-# Build rule for target.
-duckdb_func_list: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_list
-.PHONY : duckdb_func_list
-
-# fast build rule for target.
-duckdb_func_list/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/scalar/list/CMakeFiles/duckdb_func_list.dir/build.make src/function/scalar/list/CMakeFiles/duckdb_func_list.dir/build
-.PHONY : duckdb_func_list/fast
-
-#=============================================================================
-# Target rules for targets named duckdb_func_map_nested
-
-# Build rule for target.
-duckdb_func_map_nested: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_map_nested
-.PHONY : duckdb_func_map_nested
-
-# fast build rule for target.
-duckdb_func_map_nested/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/scalar/map/CMakeFiles/duckdb_func_map_nested.dir/build.make src/function/scalar/map/CMakeFiles/duckdb_func_map_nested.dir/build
-.PHONY : duckdb_func_map_nested/fast
-
-#=============================================================================
-# Target rules for targets named duckdb_func_math
-
-# Build rule for target.
-duckdb_func_math: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_math
-.PHONY : duckdb_func_math
-
-# fast build rule for target.
-duckdb_func_math/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/scalar/math/CMakeFiles/duckdb_func_math.dir/build.make src/function/scalar/math/CMakeFiles/duckdb_func_math.dir/build
-.PHONY : duckdb_func_math/fast
-
-#=============================================================================
-# Target rules for targets named duckdb_func_ops
-
-# Build rule for target.
-duckdb_func_ops: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_ops
-.PHONY : duckdb_func_ops
-
-# fast build rule for target.
-duckdb_func_ops/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/scalar/operators/CMakeFiles/duckdb_func_ops.dir/build.make src/function/scalar/operators/CMakeFiles/duckdb_func_ops.dir/build
-.PHONY : duckdb_func_ops/fast
+duckdb_func_ops_main/fast:
+	$(MAKE) $(MAKESILENT) -f src/function/scalar/operators/CMakeFiles/duckdb_func_ops_main.dir/build.make src/function/scalar/operators/CMakeFiles/duckdb_func_ops_main.dir/build
+.PHONY : duckdb_func_ops_main/fast
 
 #=============================================================================
 # Target rules for targets named duckdb_func_seq
@@ -838,17 +968,17 @@ duckdb_func_seq/fast:
 .PHONY : duckdb_func_seq/fast
 
 #=============================================================================
-# Target rules for targets named duckdb_func_string
+# Target rules for targets named duckdb_func_string_main
 
 # Build rule for target.
-duckdb_func_string: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_string
-.PHONY : duckdb_func_string
+duckdb_func_string_main: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_string_main
+.PHONY : duckdb_func_string_main
 
 # fast build rule for target.
-duckdb_func_string/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/scalar/string/CMakeFiles/duckdb_func_string.dir/build.make src/function/scalar/string/CMakeFiles/duckdb_func_string.dir/build
-.PHONY : duckdb_func_string/fast
+duckdb_func_string_main/fast:
+	$(MAKE) $(MAKESILENT) -f src/function/scalar/string/CMakeFiles/duckdb_func_string_main.dir/build.make src/function/scalar/string/CMakeFiles/duckdb_func_string_main.dir/build
+.PHONY : duckdb_func_string_main/fast
 
 #=============================================================================
 # Target rules for targets named duckdb_func_string_regexp
@@ -864,17 +994,17 @@ duckdb_func_string_regexp/fast:
 .PHONY : duckdb_func_string_regexp/fast
 
 #=============================================================================
-# Target rules for targets named duckdb_func_struct
+# Target rules for targets named duckdb_func_struct_main
 
 # Build rule for target.
-duckdb_func_struct: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_struct
-.PHONY : duckdb_func_struct
+duckdb_func_struct_main: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_struct_main
+.PHONY : duckdb_func_struct_main
 
 # fast build rule for target.
-duckdb_func_struct/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/scalar/struct/CMakeFiles/duckdb_func_struct.dir/build.make src/function/scalar/struct/CMakeFiles/duckdb_func_struct.dir/build
-.PHONY : duckdb_func_struct/fast
+duckdb_func_struct_main/fast:
+	$(MAKE) $(MAKESILENT) -f src/function/scalar/struct/CMakeFiles/duckdb_func_struct_main.dir/build.make src/function/scalar/struct/CMakeFiles/duckdb_func_struct_main.dir/build
+.PHONY : duckdb_func_struct_main/fast
 
 #=============================================================================
 # Target rules for targets named duckdb_func_system
@@ -888,32 +1018,6 @@ duckdb_func_system: cmake_check_build_system
 duckdb_func_system/fast:
 	$(MAKE) $(MAKESILENT) -f src/function/scalar/system/CMakeFiles/duckdb_func_system.dir/build.make src/function/scalar/system/CMakeFiles/duckdb_func_system.dir/build
 .PHONY : duckdb_func_system/fast
-
-#=============================================================================
-# Target rules for targets named duckdb_func_union
-
-# Build rule for target.
-duckdb_func_union: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_union
-.PHONY : duckdb_func_union
-
-# fast build rule for target.
-duckdb_func_union/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/scalar/union/CMakeFiles/duckdb_func_union.dir/build.make src/function/scalar/union/CMakeFiles/duckdb_func_union.dir/build
-.PHONY : duckdb_func_union/fast
-
-#=============================================================================
-# Target rules for targets named duckdb_func_enum
-
-# Build rule for target.
-duckdb_func_enum: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_func_enum
-.PHONY : duckdb_func_enum
-
-# fast build rule for target.
-duckdb_func_enum/fast:
-	$(MAKE) $(MAKESILENT) -f src/function/scalar/enum/CMakeFiles/duckdb_func_enum.dir/build.make src/function/scalar/enum/CMakeFiles/duckdb_func_enum.dir/build
-.PHONY : duckdb_func_enum/fast
 
 #=============================================================================
 # Target rules for targets named duckdb_func_table
@@ -1005,6 +1109,19 @@ duckdb_common: cmake_check_build_system
 duckdb_common/fast:
 	$(MAKE) $(MAKESILENT) -f src/common/CMakeFiles/duckdb_common.dir/build.make src/common/CMakeFiles/duckdb_common.dir/build
 .PHONY : duckdb_common/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_adbc
+
+# Build rule for target.
+duckdb_adbc: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_adbc
+.PHONY : duckdb_adbc
+
+# fast build rule for target.
+duckdb_adbc/fast:
+	$(MAKE) $(MAKESILENT) -f src/common/adbc/CMakeFiles/duckdb_adbc.dir/build.make src/common/adbc/CMakeFiles/duckdb_adbc.dir/build
+.PHONY : duckdb_adbc/fast
 
 #=============================================================================
 # Target rules for targets named duckdb_common_arrow
@@ -1122,6 +1239,32 @@ duckdb_common_types: cmake_check_build_system
 duckdb_common_types/fast:
 	$(MAKE) $(MAKESILENT) -f src/common/types/CMakeFiles/duckdb_common_types.dir/build.make src/common/types/CMakeFiles/duckdb_common_types.dir/build
 .PHONY : duckdb_common_types/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_common_types_column
+
+# Build rule for target.
+duckdb_common_types_column: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_common_types_column
+.PHONY : duckdb_common_types_column
+
+# fast build rule for target.
+duckdb_common_types_column/fast:
+	$(MAKE) $(MAKESILENT) -f src/common/types/column/CMakeFiles/duckdb_common_types_column.dir/build.make src/common/types/column/CMakeFiles/duckdb_common_types_column.dir/build
+.PHONY : duckdb_common_types_column/fast
+
+#=============================================================================
+# Target rules for targets named duckdb_common_types_row
+
+# Build rule for target.
+duckdb_common_types_row: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 duckdb_common_types_row
+.PHONY : duckdb_common_types_row
+
+# fast build rule for target.
+duckdb_common_types_row/fast:
+	$(MAKE) $(MAKESILENT) -f src/common/types/row/CMakeFiles/duckdb_common_types_row.dir/build.make src/common/types/row/CMakeFiles/duckdb_common_types_row.dir/build
+.PHONY : duckdb_common_types_row/fast
 
 #=============================================================================
 # Target rules for targets named duckdb_value_operations
@@ -1657,6 +1800,19 @@ test_api/fast:
 .PHONY : test_api/fast
 
 #=============================================================================
+# Target rules for targets named test_sql_adbc
+
+# Build rule for target.
+test_sql_adbc: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test_sql_adbc
+.PHONY : test_sql_adbc
+
+# fast build rule for target.
+test_sql_adbc/fast:
+	$(MAKE) $(MAKESILENT) -f test/api/adbc/CMakeFiles/test_sql_adbc.dir/build.make test/api/adbc/CMakeFiles/test_sql_adbc.dir/build
+.PHONY : test_sql_adbc/fast
+
+#=============================================================================
 # Target rules for targets named test_sql_capi
 
 # Build rule for target.
@@ -1705,7 +1861,7 @@ test_arrow_roundtrip: cmake_check_build_system
 
 # fast build rule for target.
 test_arrow_roundtrip/fast:
-	$(MAKE) $(MAKESILENT) -f test/arrow_roundtrip/CMakeFiles/test_arrow_roundtrip.dir/build.make test/arrow_roundtrip/CMakeFiles/test_arrow_roundtrip.dir/build
+	$(MAKE) $(MAKESILENT) -f test/arrow/CMakeFiles/test_arrow_roundtrip.dir/build.make test/arrow/CMakeFiles/test_arrow_roundtrip.dir/build
 .PHONY : test_arrow_roundtrip/fast
 
 #=============================================================================
@@ -1785,6 +1941,19 @@ test_memory_leak: cmake_check_build_system
 test_memory_leak/fast:
 	$(MAKE) $(MAKESILENT) -f test/memoryleak/CMakeFiles/test_memory_leak.dir/build.make test/memoryleak/CMakeFiles/test_memory_leak.dir/build
 .PHONY : test_memory_leak/fast
+
+#=============================================================================
+# Target rules for targets named test_parallel_csv
+
+# Build rule for target.
+test_parallel_csv: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 test_parallel_csv
+.PHONY : test_parallel_csv
+
+# fast build rule for target.
+test_parallel_csv/fast:
+	$(MAKE) $(MAKESILENT) -f test/parallel_csv/CMakeFiles/test_parallel_csv.dir/build.make test/parallel_csv/CMakeFiles/test_parallel_csv.dir/build
+.PHONY : test_parallel_csv/fast
 
 #=============================================================================
 # Target rules for targets named test_filter
@@ -2464,8 +2633,10 @@ help:
 	@echo "... NightlyTest"
 	@echo "... NightlyUpdate"
 	@echo "... duckdb"
+	@echo "... duckdb_adbc"
 	@echo "... duckdb_aggr_algebraic"
 	@echo "... duckdb_aggr_distr"
+	@echo "... duckdb_aggr_distributive"
 	@echo "... duckdb_aggr_holistic"
 	@echo "... duckdb_aggr_nested"
 	@echo "... duckdb_aggr_regr"
@@ -2484,7 +2655,10 @@ help:
 	@echo "... duckdb_common_operators"
 	@echo "... duckdb_common_serializer"
 	@echo "... duckdb_common_types"
+	@echo "... duckdb_common_types_column"
+	@echo "... duckdb_common_types_row"
 	@echo "... duckdb_constraints"
+	@echo "... duckdb_core_functions"
 	@echo "... duckdb_execution"
 	@echo "... duckdb_expression"
 	@echo "... duckdb_expression_binders"
@@ -2499,16 +2673,22 @@ help:
 	@echo "... duckdb_func_date"
 	@echo "... duckdb_func_enum"
 	@echo "... duckdb_func_generic"
+	@echo "... duckdb_func_generic_main"
 	@echo "... duckdb_func_list"
+	@echo "... duckdb_func_list_nested"
 	@echo "... duckdb_func_map_nested"
 	@echo "... duckdb_func_math"
 	@echo "... duckdb_func_ops"
+	@echo "... duckdb_func_ops_main"
 	@echo "... duckdb_func_pragma"
+	@echo "... duckdb_func_random"
 	@echo "... duckdb_func_scalar"
 	@echo "... duckdb_func_seq"
 	@echo "... duckdb_func_string"
+	@echo "... duckdb_func_string_main"
 	@echo "... duckdb_func_string_regexp"
 	@echo "... duckdb_func_struct"
+	@echo "... duckdb_func_struct_main"
 	@echo "... duckdb_func_system"
 	@echo "... duckdb_func_table"
 	@echo "... duckdb_func_table_version"
@@ -2600,7 +2780,9 @@ help:
 	@echo "... test_mbedtls"
 	@echo "... test_memory_leak"
 	@echo "... test_ossfuzz"
+	@echo "... test_parallel_csv"
 	@echo "... test_persistence"
+	@echo "... test_sql_adbc"
 	@echo "... test_sql_capi"
 	@echo "... test_sql_interquery_parallelism"
 	@echo "... test_sql_storage"
