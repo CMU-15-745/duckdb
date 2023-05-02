@@ -1,6 +1,5 @@
 #include "duckdb/planner/operator/logical_projection.hpp"
 #include "duckdb/common/field_writer.hpp"
-#include <iostream>
 
 namespace duckdb {
 
@@ -19,10 +18,8 @@ void LogicalProjection::ResolveTypes() {
 }
 
 void LogicalProjection::Serialize(FieldWriter &writer) const {
-	std::cout << "LogicalProjection::Serialize SHOULD PRINT" << std::endl;
 	writer.WriteField(table_index);
 	writer.WriteSerializableList<Expression>(expressions);
-	std::cout<<"LogicalProjection::Serialize Done" << std::endl;
 }
 
 unique_ptr<LogicalOperator> LogicalProjection::Deserialize(LogicalDeserializationState &state, FieldReader &reader) {

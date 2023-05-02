@@ -11,7 +11,6 @@
 
 #include "duckdb/catalog/catalog_entry/table_catalog_entry.hpp"
 #include "duckdb/common/to_string.hpp"
-#include <iostream>
 
 namespace duckdb {
 
@@ -111,7 +110,6 @@ void ColumnBindingResolver::VisitOperator(LogicalOperator &op) {
 
 unique_ptr<Expression> ColumnBindingResolver::VisitReplace(BoundColumnRefExpression &expr,
                                                            unique_ptr<Expression> *expr_ptr) {
-	std::cout << "ColumnBindingResolver::VisitReplace Expr " << expr.ToString() << " Depth " << expr.depth << std::endl;
 	D_ASSERT(expr.depth == 0);
 	// check the current set of column bindings to see which index corresponds to the column reference
 	for (idx_t i = 0; i < bindings.size(); i++) {

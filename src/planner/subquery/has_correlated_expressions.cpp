@@ -4,7 +4,6 @@
 #include "duckdb/planner/expression/bound_subquery_expression.hpp"
 
 #include <algorithm>
-#include <iostream>
 
 namespace duckdb {
 
@@ -21,9 +20,6 @@ unique_ptr<Expression> HasCorrelatedExpressions::VisitReplace(BoundColumnRefExpr
 	if (expr.depth <= join_depth) {
 		return nullptr;
 	}
-
-	std::cout << "HasCorrelatedExpressions::VisitReplace join_depth " << join_depth << std::endl;
-	std::cout << "Expr: " << expr.ToString() << " Depth: " << expr.depth << std::endl;
 
 	if (expr.depth > 1 + join_depth) {
 		if (lateral) {
@@ -54,11 +50,8 @@ unique_ptr<Expression> HasCorrelatedExpressions::VisitReplace(BoundSubqueryExpre
 	}
 	// check if the subquery contains any of the correlated expressions that we are concerned about in this node
 	for (idx_t i = 0; i < correlated_columns.size(); i++) {
-		std::cout << "HasCorrelatedExpressions::VisitReplace BoundSubqueryExpression " << correlated_columns[i].name << " " << correlated_columns[i].depth << " " << std::endl;
-		auto t = std::find(expr.binder->correlated_columns.begin(), expr.binder->correlated_columns.end(), correlated_columns[i]);
 		if (std::find(expr.binder->correlated_columns.begin(), expr.binder->correlated_columns.end(),
 		              correlated_columns[i]) != expr.binder->correlated_columns.end()) {
-			std::cout << "HasCorrelatedExpressions::VisitReplace BoundSubqueryExpression Found a match in BoundSubqueryExpression " << t->name << " " << t->depth << " " << std::endl;
 			has_correlated_expressions = true;
 			break;
 		}

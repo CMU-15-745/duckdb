@@ -19,8 +19,6 @@
 #include "duckdb/planner/expression_binder/lateral_binder.hpp"
 #include "duckdb/planner/subquery/recursive_subquery_planner.hpp"
 
-#include <iostream>
-
 namespace duckdb {
 
 static unique_ptr<Expression> PlanUncorrelatedSubquery(Binder &binder, BoundSubqueryExpression &expr,
@@ -226,7 +224,6 @@ static bool PerformDuplicateElimination(Binder &binder, vector<CorrelatedColumnI
 static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubqueryExpression &expr,
                                                      unique_ptr<LogicalOperator> &root,
                                                      unique_ptr<LogicalOperator> plan) {
-	std::cout << "PlanCorrelatedSubquery Starting" << std::endl;
 	auto &correlated_columns = expr.binder->correlated_columns;
 	// FIXME: there should be a way of disabling decorrelation for ANY queries as well, but not for now...
 	bool perform_delim =
@@ -272,8 +269,6 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
 		delim_join->AddChild(std::move(dependent_join));
 		root = std::move(delim_join);
 		// finally push the BoundColumnRefExpression referring to the data element returned by the join
-		std::cout << root->ToString() << std::endl;
-		std::cout << "PlanCorrelatedSubquery Done" << std::endl;
 		return make_unique<BoundColumnRefExpression>(expr.GetName(), expr.return_type,
 		                                             plan_columns[flatten.data_offset]);
 	}
@@ -297,8 +292,6 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
 		delim_join->AddChild(std::move(dependent_join));
 		root = std::move(delim_join);
 		// finally push the BoundColumnRefExpression referring to the marker
-		std::cout << root->ToString() << std::endl;
-		std::cout << "PlanCorrelatedSubquery Done" << std::endl;
 		return make_unique<BoundColumnRefExpression>(expr.GetName(), expr.return_type, ColumnBinding(mark_index, 0));
 	}
 	default: {
@@ -335,8 +328,6 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
 		delim_join->AddChild(std::move(dependent_join));
 		root = std::move(delim_join);
 		// finally push the BoundColumnRefExpression referring to the marker
-		std::cout << root->ToString() << std::endl;
-		std::cout << "PlanCorrelatedSubquery Done" << std::endl;
 		return make_unique<BoundColumnRefExpression>(expr.GetName(), expr.return_type, ColumnBinding(mark_index, 0));
 	}
 	}
@@ -347,11 +338,8 @@ void RecursiveSubqueryPlanner::VisitOperator(LogicalOperator &op) {
 		root = std::move(op.children[0]);
 		D_ASSERT(root);
 		if (root->type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
-			std::cout <<"RecursiveSubqueryPlanner::VisitOperator Found a LOGICAL_DEPENDENT_JOIN -- flattening" << std::endl;
 			auto& new_root = (LogicalDependentJoin &)*root;
 			root = binder.PlanLateralJoin(std::move(new_root.children[0]), std::move(new_root.children[1]), new_root.correlated_columns, new_root.join_type, std::move(new_root.join_condition), std::move(new_root.conditions));
-			std::cout << root->ToString() << std::endl;
-			std::cout <<"RecursiveSubqueryPlanner::VisitOperator Found a LOGICAL_DEPENDENT_JOIN -- Flattening Completed " << std::endl;
 		}
 		VisitOperatorExpressions(op);
 		op.children[0] = std::move(root);
@@ -372,10 +360,7 @@ unique_ptr<Expression> Binder::PlanSubquery(BoundSubqueryExpression &expr, uniqu
 	// note that we do not plan nested subqueries yet
 	auto sub_binder = Binder::CreateBinder(context, this);
 	sub_binder->plan_subquery = false;
-	std::cout << "Binder::PlanSubquery CreatePlan Starting (plan_subquery:false) on " << expr.ToString() << std::endl;
 	auto subquery_root = sub_binder->CreatePlan(*expr.subquery);
-	std::cout << subquery_root->ToString() << std::endl;
-	std::cout << "Binder::PlanSubquery CreatePlan Done (plan_subquery:false) done" << std::endl;
 	D_ASSERT(subquery_root);
 
 	// now we actually flatten the subquery
@@ -391,9 +376,7 @@ unique_ptr<Expression> Binder::PlanSubquery(BoundSubqueryExpression &expr, uniqu
 	// finally, we recursively plan the nested subqueries (if there are any)
 	if (sub_binder->has_unplanned_subqueries) {
 		RecursiveSubqueryPlanner plan(*this);
-		std::cout <<"RecursiveSubqueryPlanner Starting VisitOperator" <<std::endl;
 		plan.VisitOperator(*root);
-		std::cout <<"RecursiveSubqueryPlanner Finished VisitOperator" <<std::endl;
 	}
 	return result_expression;
 }
@@ -403,12 +386,8 @@ void Binder::PlanSubqueries(unique_ptr<Expression> *expr_ptr, unique_ptr<Logical
 		return;
 	}
 	auto &expr = **expr_ptr;
-	std::cout << "Binder::PlanSubqueries Starting with expression " << expr.ToString() << std::endl;
-
-	std::cout << "Binder::PlanSubqueries Enumeration Started" << std::endl;
 	// first visit the children of the node, if any
 	ExpressionIterator::EnumerateChildren(expr, [&](unique_ptr<Expression> &expr) { PlanSubqueries(&expr, root); });
-	std::cout << "Binder::PlanSubqueries Enumeration Completed" << std::endl;
 
 	// check if this is a subquery node
 	if (expr.expression_class == ExpressionClass::BOUND_SUBQUERY) {
@@ -431,13 +410,6 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
                                                     JoinType join_type,
                                                     unique_ptr<Expression> condition,
                                                     vector<JoinCondition> comp_conditions) {
-
-	std::cout << "\tcorrelated_columns: " << std::endl;
-	for (auto corr : correlated_columns)
-	{
-		std::cout << "\t\tColumn: " << corr.name << " " << corr.depth << std::endl;
-	}
-
 	// scan the right operator for correlated columns
 	// correlated LATERAL JOIN
 	vector<JoinCondition> conditions;
@@ -459,9 +431,7 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
 	// first we check which logical operators have correlated expressions in the first place
 	flatten.DetectCorrelatedExpressions(right.get(), true);
 	// now we push the dependent join down
-	std::cout <<"Right side before flattening \n" << right->ToString() << std::endl;
 	auto dependent_join = flatten.PushDownDependentJoin(std::move(right));
-	std::cout <<"Right side after flattening \n" << dependent_join->ToString() << std::endl;
 
 	// now the dependent join is fully eliminated
 	// we only need to create the join conditions between the LHS and the RHS

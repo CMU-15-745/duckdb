@@ -18,9 +18,6 @@
 #include "duckdb/planner/expression_binder/lateral_binder.hpp"
 #include "duckdb/planner/subquery/recursive_subquery_planner.hpp"
 
-
-#include <iostream>
-
 namespace duckdb {
 
     //! Create a JoinCondition from a comparison
@@ -234,12 +231,6 @@ unique_ptr<LogicalOperator> LogicalComparisonJoin::CreateJoin(JoinType type, Joi
 }
 
 unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
-
-	std::cout << "STARTING PlanJoinRef " << std::endl;
-	if (ref.condition) {
-		std::cout << "Join Conditions " << ref.condition->ToString() << std::endl;
-	}
-
 	auto old_plan_subquery = plan_subquery;
 	if (ref.lateral) {
 		plan_subquery = false;
@@ -263,25 +254,15 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 		std::swap(left, right);
 	}
 	if (ref.lateral) {
-		std::cout << "In Binder::PlanJoinRef (lateral join) (plan_subquery, " << plan_subquery << ")"<< std::endl;
 		// lateral join
-		std::cout << "Checking plan_subquery" << std::endl;
-		// std::cout << "\tLeft Plan: \n" << left->ToString() << std::endl;
-		// std::cout << "\tRight Plan: \n" << right->ToString() << std::endl;
 		if (!plan_subquery) {
 			has_unplanned_subqueries = true;
-			std::cout << "In Binder::PlanJoinRef Creating LogicalDependentJoin "<< std::endl;
 			return LogicalDependentJoin::Create(std::move(left),
 																					std::move(right),
 																					ref.correlated_columns,
 																					ref.type,
 																					std::move(ref.condition));
 		} else {
-			std::cout << "In Binder::PlanJoinRef Creating LateralJoin "<< std::endl;
-			std::cout << "LeftChild" << std::endl;
-			std::cout << left->ToString() << std::endl;
-			std::cout << "RightChild" << std::endl;
-			std::cout << right->ToString() << std::endl;
 
 
 			auto res = PlanLateralJoin(std::move(left),
@@ -290,13 +271,9 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 																 ref.type,
 														 		 std::move(ref.condition),
 														 		 vector<JoinCondition>());
-			std::cout << "COMPLETED PlanLateralJoin" << std::endl;
-			std::cout << res->ToString() << std::endl;
 			if (has_unplanned_subqueries) {
 				RecursiveSubqueryPlanner plan(*this);
-				std::cout <<"RecursiveSubqueryPlanner Starting VisitOperator" <<std::endl;
 				plan.VisitOperator(*res);
-				std::cout <<"RecursiveSubqueryPlanner Finished VisitOperator" <<std::endl;
 			}
 			return res;
 		}
@@ -368,7 +345,6 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 	default:
 		break;
 	}
-	std::cout << "END PlanJoinRef " << std::endl;
 	return result;
 }
 

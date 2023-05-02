@@ -4,8 +4,6 @@
 #include "duckdb/planner/expression_iterator.hpp"
 #include "duckdb/planner/operator/list.hpp"
 
-#include <iostream>
-
 namespace duckdb {
 
 void LogicalOperatorVisitor::VisitOperator(LogicalOperator &op) {
@@ -22,8 +20,6 @@ void LogicalOperatorVisitor::VisitOperatorChildren(LogicalOperator &op) {
 void LogicalOperatorVisitor::EnumerateExpressions(LogicalOperator &op,
                                                   const std::function<void(unique_ptr<Expression> *child)> &callback) {
 
-	// std::cout << "EnumerateExpressions" << std::endl;
-	// std::cout << "Op: \n" << LogicalOperatorToString(op.type) << std::endl;
 
 	switch (op.type) {
 	case LogicalOperatorType::LOGICAL_EXPRESSION_GET: {
@@ -135,10 +131,6 @@ void LogicalOperatorVisitor::VisitOperatorExpressions(LogicalOperator &op) {
 void LogicalOperatorVisitor::VisitExpression(unique_ptr<Expression> *expression) {
 	auto &expr = **expression;
 	unique_ptr<Expression> result;
-
-	// std::cout << "VisitExpression" << std::endl;
-	// std::cout << "Expr: " << expr.ToString() << std::endl;
-	// std::cout << "Expr Class: " << ExpressionClassToString(expr.GetExpressionClass()) << std::endl;
 
 	switch (expr.GetExpressionClass()) {
 	case ExpressionClass::BOUND_AGGREGATE:

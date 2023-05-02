@@ -4,8 +4,6 @@
 #include "duckdb/planner/expression/bound_columnref_expression.hpp"
 #include "duckdb/planner/expression/bound_subquery_expression.hpp"
 
-#include <iostream>
-
 namespace duckdb {
 
 LateralBinder::LateralBinder(Binder &binder, ClientContext &context) : ExpressionBinder(binder, context) {
@@ -34,9 +32,6 @@ BindResult LateralBinder::BindColumnRef(unique_ptr<ParsedExpression> *expr_ptr, 
 		return result;
 	}
 
-	std::cout << "LateralBinder::BindColumnRef" << std::endl;
-	std::cout << "\t Expr: " << (*expr_ptr)->ToString() << std::endl;
-	std::cout << "\tDepth: " << depth << std::endl;
 	// if (depth > 1) {
 	// 	throw BinderException("Nested lateral joins are not supported yet");
 	// }
@@ -146,12 +141,6 @@ protected:
 };
 
 void LateralBinder::ReduceExpressionDepth(LogicalOperator &op, const vector<CorrelatedColumnInfo> &correlated) {
-	std::cout << "Reducing Expression Depth!!" << std::endl;
-	std::cout << "Correlated columns are: " << std::endl;
-	for (auto col : correlated)
-	{
-		std::cout << "\tCol: " << col.name << " Depth: " << col.depth << std::endl;
-	}
 	ExpressionDepthReducer depth_reducer(correlated);
 	depth_reducer.VisitOperator(op);
 }

@@ -21,7 +21,6 @@ RewriteCorrelatedExpressions::RewriteCorrelatedExpressions(ColumnBinding base_bi
 void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 	if (recursive_rewrite) {
 		// Update column bindings from left child of lateral to right child
-		std::cout << "RewriteCorrelatedExpressions::VisitOperator recursive rewrite start" << std::endl;
 		switch (op.type) {
 		case LogicalOperatorType::LOGICAL_JOIN:
 		case LogicalOperatorType::LOGICAL_DELIM_JOIN:
@@ -41,7 +40,6 @@ void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 			VisitOperatorChildren(op);
 		}
 	}
-	std::cout<<"RewriteCorrelatedExpressions::VisitOperator normal rewrite start" << std::endl;
 	if (op.type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
 		auto &plan = (LogicalDependentJoin &)op;
 		for (auto &corr: plan.correlated_columns) {
@@ -56,11 +54,9 @@ void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 
 unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRefExpression &expr,
                                                                   unique_ptr<Expression> *expr_ptr) {
-	std::cout << "RewriteCorrelatedExpressions::VisitReplace(BoundColumnRefExpression) " << expr.ToString() << " JoinDepth " << join_depth << std::endl;
 	if (expr.depth <= join_depth) {
 		return nullptr;
 	}
-	std::cout << "RewriteCorrelatedExpressions::VisitReplace(BoundColumnRefExpression) " << expr.ToString() << " Depth " << expr.depth << std::endl;
 	// correlated column reference
 	// replace with the entry referring to the duplicate eliminated scan
 	// if this assertion occurs it generally means the correlated expressions were not propagated correctly
@@ -81,11 +77,9 @@ unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRef
 
 unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundSubqueryExpression &expr,
                                                                   unique_ptr<Expression> *expr_ptr) {
-	std::cout << "RewriteCorrelatedExpressions::VisitReplace(BoundSubqueryExpression) " << expr.ToString() << std::endl;
 	if (!expr.IsCorrelated()) {
 		return nullptr;
 	}
-	std::cout << "RewriteCorrelatedExpressions::VisitReplace(BoundSubqueryExpression) " << expr.ToString()  << " IsCorrelated "<< std::endl;
 	// subquery detected within this subquery
 	// recursively rewrite it using the RewriteCorrelatedRecursive class
 	RewriteCorrelatedRecursive rewrite(expr, base_binding, correlated_map);
@@ -100,7 +94,6 @@ RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelatedRecur
 
 void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelatedSubquery(
     BoundSubqueryExpression &expr) {
-	std::cout << "BoundSubqueryExpression: " << std::endl;
 	expr.Print();
 	// rewrite the binding in the correlated list of the subquery)
 	for (auto &corr : expr.binder->correlated_columns) {
@@ -145,9 +138,6 @@ void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelated
 		if (entry != correlated_map.end()) {
 			// we found the column in the correlated map!
 			// update the binding and reduce the depth by 1
-			std::cout << "DECREMENT DURING FLATTENING!!!" << std::endl;
-			std::cout << child.ToString() << std::endl;
-			std::cout << "Depth from " << bound_colref.depth << " to " << (bound_colref.depth-1) << std::endl;
 			bound_colref.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
 			bound_colref.depth--;
 		}

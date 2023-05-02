@@ -13,8 +13,6 @@
 #include "duckdb/planner/expression_binder/lateral_binder.hpp"
 #include "duckdb/planner/query_node/bound_select_node.hpp"
 
-#include <iostream>
-
 namespace duckdb {
 
 static unique_ptr<ParsedExpression> BindColumn(Binder &binder, ClientContext &context, const string &alias,
@@ -162,17 +160,9 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 		}
 		result->lateral = is_lateral;
 
-		std::cout << "BindJoinRef: " << ref_string << std::endl;
-		std::cout << "\tAll Correlated Columns: " << std::endl;
-		for (auto corr : all_correlated_columns)
-		{
-			std::cout << "\t\tColumn: " << corr.name << " " << corr.depth << std::endl;
-		}
-
 		result->correlated_columns = all_correlated_columns;
 
 		if (result->lateral) {
-			std::cout << "BindJoinRef: Encountered a Lateral" << std::endl;
 			// lateral join: can only be an INNER or LEFT join
 			if (ref.type != JoinType::INNER && ref.type != JoinType::LEFT) {
 				throw BinderException("The combining JOIN type must be INNER or LEFT for a LATERAL reference");
