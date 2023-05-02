@@ -61,66 +61,6 @@ test/sql/subquery/complex/correlated_list_any_join.test:31: FAILED:
 explicitly with message:
   0
 
-[1127/2368] (47%): test/sql/subquery/lateral/lateral_values.test                ================================================================================
-Query unexpectedly succeeded! (test/sql/subquery/lateral/lateral_values.test:26)!
-================================================================================
-SELECT * FROM integers a, integers b JOIN LATERAL (VALUES (a.i)) ss(x) ON (true) ORDER BY a.i, b.i;
-================================================================================
-i	i	x	
-INTEGER	INTEGER	INTEGER	
-[ Rows: 16]
-NULL	NULL	NULL
-NULL	1	NULL
-NULL	2	NULL
-NULL	3	NULL
-1	NULL	1
-1	1	1
-1	2	1
-1	3	1
-2	NULL	2
-2	1	2
-2	2	2
-2	3	2
-3	NULL	3
-3	1	3
-3	2	3
-3	3	3
-
-
--------------------------------------------------------------------------------
-test/sql/subquery/lateral/lateral_values.test
--------------------------------------------------------------------------------
-/Users/samarch/Downloads/duckdb/test/sqlite/test_sqllogictest.cpp:178
-...............................................................................
-
-test/sql/subquery/lateral/lateral_values.test:26: FAILED:
-explicitly with message:
-  0
-
-[1135/2368] (47%): test/sql/subquery/lateral/lateral_join_nested.test           ================================================================================
-Query unexpectedly succeeded! (test/sql/subquery/lateral/lateral_join_nested.test:26)!
-================================================================================
-SELECT i1.i, SUM(r2.k), COUNT(*) FROM integers i1, LATERAL (SELECT i1.i+i2.i FROM integers i2, LATERAL (SELECT i1.i+i2.i+i3.i FROM integers i3) r3) r2(k) GROUP BY i1.i ORDER BY i1.i;
-================================================================================
-i	sum(r2.k)	count_star()	
-INTEGER	HUGEINT	BIGINT	
-[ Rows: 4]
-NULL	NULL	16
-1	36	16
-2	48	16
-3	60	16
-
-
--------------------------------------------------------------------------------
-test/sql/subquery/lateral/lateral_join_nested.test
--------------------------------------------------------------------------------
-/Users/samarch/Downloads/duckdb/test/sqlite/test_sqllogictest.cpp:178
-...............................................................................
-
-test/sql/subquery/lateral/lateral_join_nested.test:26: FAILED:
-explicitly with message:
-  0
-
 [1136/2368] (47%): test/sql/subquery/lateral/pg_lateral.test                    ================================================================================
 Query unexpectedly failed (test/sql/subquery/lateral/pg_lateral.test:197)
 ================================================================================
@@ -208,5 +148,6 @@ explicitly with message:
 
 [2368/2368] (100%): test/sql/table_function/icu_range_timestamptz.test          
 ===============================================================================
-test cases:   2368 |   2362 passed | 6 failed
-assertions: 256836 | 256830 passed | 6 failed
+test cases:   2368 |   2364 passed | 4 failed
+assertions: 256898 | 256894 passed | 4 failed
+
