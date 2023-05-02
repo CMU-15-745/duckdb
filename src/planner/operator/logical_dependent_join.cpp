@@ -21,7 +21,7 @@ unique_ptr<LogicalOperator> LogicalDependentJoin::Create(
 		vector<CorrelatedColumnInfo> correlated_columns,
 		JoinType type,
 		unique_ptr<Expression> condition) {
-	return make_unique<LogicalDependentJoin>(std::move(left), std::move(right), correlated_columns, type, std::move(condition));
+	return make_uniq<LogicalDependentJoin>(std::move(left), std::move(right), correlated_columns, type, std::move(condition));
 }
 
 void LogicalDependentJoin::Serialize(FieldWriter &writer) const {
