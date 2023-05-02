@@ -45,7 +45,6 @@ private:
 	unique_ptr<LogicalOperator> PushDownDependentJoinInternal(unique_ptr<LogicalOperator> plan,
 	                                                          bool &parent_propagate_null_values,
 	                                                          idx_t join_depth);
-	void RemoveCorrelatedColumnsFromDependentJoin(unique_ptr<LogicalOperator>& plan);
 };
 
 } // namespace duckdb

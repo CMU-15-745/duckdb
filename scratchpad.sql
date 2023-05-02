@@ -147,7 +147,7 @@ FROM (SELECT 42) t(i),
                FROM (SELECT 242 l) t4(l),
                     (SELECT 1 WHERE i+l+k=426) t5(m)));
 
-No Rows
+i = 42, k = 142, l = 242, m = 1
 
 select i
     from (select 42) t(i)

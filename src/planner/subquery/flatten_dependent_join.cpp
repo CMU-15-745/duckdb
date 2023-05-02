@@ -101,23 +101,6 @@ bool SubqueryDependentFilter(Expression *expr) {
 	return false;
 }
 
-void FlattenDependentJoins::RemoveCorrelatedColumnsFromDependentJoin(unique_ptr<LogicalOperator>& plan) {
-	if (plan->type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
-		std::cout <<"LOGICAL_DEPENDENT_JOIN Removing pushed correlated_columns from the join node" << std::endl;
-		auto &dependent_join = (LogicalDependentJoin &)*plan;
-		auto new_correlated_columns = vector<CorrelatedColumnInfo>();
-		for (auto& corr_info : dependent_join.correlated_columns) {
-			if (std::find(correlated_columns.begin(), correlated_columns.end(), corr_info) == correlated_columns.end()) {
-				new_correlated_columns.push_back(corr_info);
-			}
-		}
-		dependent_join.correlated_columns.clear();
-		for (auto& cor_info: new_correlated_columns) {
-			dependent_join.correlated_columns.push_back(cor_info);
-		}
-	}
-}
-
 unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal(unique_ptr<LogicalOperator> plan,
                                                                                  bool &parent_propagate_null_values,
                                                                                  idx_t join_depth) {
@@ -322,7 +305,6 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 		if (!((dependent_join.join_type == JoinType::INNER) || (dependent_join.join_type == JoinType::LEFT))) {
 				throw Exception("Dependent join can only be INNER or LEFT type");
 		}
-		auto &join = (LogicalJoin &)*plan;
 		D_ASSERT(plan->children.size() == 2);
 		// Push all the bindings down to the left side so the right side knows where to refer DELIM_GET from
 		plan->children[0] = PushDownDependentJoinInternal(std::move(plan->children[0]), parent_propagate_null_values, join_depth);
@@ -355,7 +337,6 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 				plan->children[0] =
 				    PushDownDependentJoinInternal(std::move(plan->children[0]), parent_propagate_null_values, join_depth);
 				// Remove the correlated columns coming from outside for current join node
-				RemoveCorrelatedColumnsFromDependentJoin(plan);
 				return plan;
 			}
 			if (!left_has_correlation) {
@@ -364,7 +345,6 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 				plan->children[1] =
 				    PushDownDependentJoinInternal(std::move(plan->children[1]), parent_propagate_null_values, join_depth+1);
 				// Remove the correlated columns coming from outside for current join node
-				RemoveCorrelatedColumnsFromDependentJoin(plan);
 				return plan;
 			}
 		} else if (join.join_type == JoinType::LEFT) {
@@ -374,7 +354,6 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 				plan->children[0] =
 				    PushDownDependentJoinInternal(std::move(plan->children[0]), parent_propagate_null_values, join_depth);
 				// Remove the correlated columns coming from outside for current join node
-				RemoveCorrelatedColumnsFromDependentJoin(plan);
 				return plan;
 			}
 		} else if (join.join_type == JoinType::RIGHT) {
@@ -422,7 +401,6 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 			    correlated_columns[i].type, ColumnBinding(right_binding.table_index, right_binding.column_index + i));
 
 			if (join.type == LogicalOperatorType::LOGICAL_COMPARISON_JOIN ||
-					join.type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN ||
 			    join.type == LogicalOperatorType::LOGICAL_ASOF_JOIN) {
 				JoinCondition cond;
 				cond.left = std::move(left);
@@ -444,7 +422,6 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 		RewriteCorrelatedExpressions rewriter(right_binding, correlated_map, join_depth);
 		rewriter.VisitOperator(*plan);
 		// TODO: Find the right place to place this RemoveCorrelatedColumnsFromDependentJoin
-		RemoveCorrelatedColumnsFromDependentJoin(plan);
 		return plan;
 	}
 	case LogicalOperatorType::LOGICAL_LIMIT: {
