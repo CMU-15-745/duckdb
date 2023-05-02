@@ -22,10 +22,7 @@ void LogicalProjection::Serialize(FieldWriter &writer) const {
 	std::cout << "LogicalProjection::Serialize SHOULD PRINT" << std::endl;
 	writer.WriteField(table_index);
 	writer.WriteSerializableList<Expression>(expressions);
-	for(auto& expr: expressions) {
-		std::cout <<"LogicalProjection::Serialize Expr "<< expr->ToString() << " Type" << LogicalTypeIdToString(expr->return_type.id()) << std::endl;
-		writer.WriteString(LogicalTypeIdToString(expr->return_type.id()));
-	}
+	std::cout<<"LogicalProjection::Serialize Done" << std::endl;
 }
 
 unique_ptr<LogicalOperator> LogicalProjection::Deserialize(LogicalDeserializationState &state, FieldReader &reader) {
