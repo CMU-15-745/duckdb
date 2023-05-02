@@ -23,13 +23,19 @@ NULL	NULL	16
 2	48	16
 3	60	16
 
-statement error
+query III
 SELECT i1.i, SUM(r2.k), COUNT(*) FROM integers i1, LATERAL (SELECT i1.i+i2.i FROM integers i2, LATERAL (SELECT i1.i+i2.i+i3.i FROM integers i3) r3) r2(k) GROUP BY i1.i ORDER BY i1.i;
 ----
-Nested lateral joins
+NULL	NULL	16
+1	36	16
+2	48	16
+3	60	16
 
 # lateral join inside correlated subquery
-statement error
+query I
 SELECT (SELECT k+l FROM (SELECT i1.i + 1) t1(k), LATERAL (SELECT k + 1) t2(l)) FROM integers i1 ORDER BY i;
 ----
-Nested lateral joins
+NULL
+5
+7
+9
