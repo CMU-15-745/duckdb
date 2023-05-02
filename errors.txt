@@ -1,0 +1,238 @@
+Query unexpectedly failed! (test/issues/fuzz/recursive_view_expression_assertion.test:19)!
+================================================================================
+SELECT a, (SELECT a FROM strings i2 RIGHT JOIN (SELECT SUM(a) sum_a FROM strings i2 WHERE i2.a>i1.a) sq ON i2.a = sq.sum_a) FROM strings i1 ORDER BY 1;
+================================================================================
+Invalid Error: Unoptimized statement differs from original result!
+Original Result:
+INTERNAL Error: Expression with depth > 1 detected in non-lateral join
+Unoptimized:
+a       (SELECT a FROM strings AS i2 RIGHT JOIN (SELECT sum(a) AS sum_a FROM strings AS i2 WHERE (i2.a > i1.a)) AS sq ON ((i2.a = sq.sum_a)))
+INTEGER INTEGER
+[ Rows: 3]
+1       NULL
+2       3
+3       NULL
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+unittest is a Catch v2.13.7 host application.
+Run with -? for options
+
+-------------------------------------------------------------------------------
+test/issues/fuzz/recursive_view_expression_assertion.test
+-------------------------------------------------------------------------------
+/home/mayank/Mayank/Mayank_2022-23/CMU_Courses/15-721_Database_Systems/duckdb/test/sqlite/test_sqllogictest.cpp:178
+...............................................................................
+
+test/issues/fuzz/recursive_view_expression_assertion.test:19: FAILED:
+explicitly with message:
+  0
+
+[610/2333] (26%): test/sql/subquery/complex/correlated_list_any_join.test       ================================================================================
+Query unexpectedly failed (test/sql/subquery/complex/correlated_list_any_join.test:31)
+================================================================================
+SELECT l IN (SELECT i1.l FROM (SELECT * FROM lists i1 WHERE i1.l=lists.l) i1 RIGHT JOIN generate_series(1, 2, 1) tbl(s) ON i1.l=ARRAY[tbl.s]) FROM lists ORDER BY l NULLS LAST;
+================================================================================
+Actual result:
+Invalid Error: Unoptimized statement differs from original result!
+Original Result:
+INTERNAL Error: Assertion triggered in file "/home/mayank/Mayank/Mayank_2022-23/CMU_Courses/15-721_Database_Systems/duckdb/src/planner/operator/logical_join.cpp" on line 56: colref.depth == 0
+Unoptimized:
+(l = ANY(SELECT i1.l FROM (SELECT * FROM lists AS i1 WHERE (i1.l = lists.l)) AS i1 RIGHT JOIN generate_series(1, 2, 1) AS tbl(s) ON ((i1.l = (ARRAY[tbl.s])))))
+BOOLEAN
+[ Rows: 4]
+true
+true
+NULL
+NULL
+
+
+
+-------------------------------------------------------------------------------
+test/sql/subquery/complex/correlated_list_any_join.test
+-------------------------------------------------------------------------------
+/home/mayank/Mayank/Mayank_2022-23/CMU_Courses/15-721_Database_Systems/duckdb/test/sqlite/test_sqllogictest.cpp:178
+...............................................................................
+
+test/sql/subquery/complex/correlated_list_any_join.test:31: FAILED:
+explicitly with message:
+  0
+
+[612/2333] (26%): test/sql/subquery/lateral/pg_lateral.test                     ================================================================================
+Query unexpectedly failed (test/sql/subquery/lateral/pg_lateral.test:197)
+================================================================================
+select * from
+  int4_tbl as i41,
+  lateral
+    (select 1 as x from
+      (select i41.f1 as lat,
+              i42.f1 as loc from
+         int8_tbl as i81, int4_tbl as i42) as ss1
+      right join int4_tbl as i43 on (i43.f1 > 1)
+      where ss1.loc = ss1.lat) as ss2
+where i41.f1 > 0;
+================================================================================
+Actual result:
+Invalid Error: Unoptimized statement differs from original result!
+Original Result:
+INTERNAL Error: Assertion triggered in file "/home/mayank/Mayank/Mayank_2022-23/CMU_Courses/15-721_Database_Systems/duckdb/src/planner/operator/logical_join.cpp" on line 56: colref.depth == 0
+Unoptimized:
+f1      x
+INTEGER INTEGER
+[ Rows: 20]
+123456  1
+2147483647      1
+123456  1
+2147483647      1
+123456  1
+2147483647      1
+123456  1
+2147483647      1
+123456  1
+2147483647      1
+123456  1
+2147483647      1
+123456  1
+2147483647      1
+123456  1
+2147483647      1
+123456  1
+2147483647      1
+123456  1
+2147483647      1
+
+
+
+-------------------------------------------------------------------------------
+test/sql/subquery/lateral/pg_lateral.test
+-------------------------------------------------------------------------------
+/home/mayank/Mayank/Mayank_2022-23/CMU_Courses/15-721_Database_Systems/duckdb/test/sqlite/test_sqllogictest.cpp:178
+...............................................................................
+
+test/sql/subquery/lateral/pg_lateral.test:197: FAILED:
+explicitly with message:
+  0
+
+[616/2333] (26%): test/sql/subquery/lateral/lateral_values.test                 ================================================================================
+Query unexpectedly succeeded! (test/sql/subquery/lateral/lateral_values.test:23)!
+================================================================================
+SELECT * FROM integers a, integers b JOIN LATERAL (VALUES (a.i)) ss(x) ON (true) ORDER BY a.i, b.i;
+================================================================================
+i       i       x
+INTEGER INTEGER INTEGER
+[ Rows: 16]
+NULL    NULL    NULL
+NULL    1       NULL
+NULL    2       NULL
+NULL    3       NULL
+1       NULL    1
+1       1       1
+1       2       1
+1       3       1
+2       NULL    2
+2       1       2
+2       2       2
+2       3       2
+3       NULL    3
+3       1       3
+3       2       3
+3       3       3
+
+
+-------------------------------------------------------------------------------
+test/sql/subquery/lateral/lateral_values.test
+-------------------------------------------------------------------------------
+/home/mayank/Mayank/Mayank_2022-23/CMU_Courses/15-721_Database_Systems/duckdb/test/sqlite/test_sqllogictest.cpp:178
+...............................................................................
+
+test/sql/subquery/lateral/lateral_values.test:23: FAILED:
+explicitly with message:
+  0
+
+[617/2333] (26%): test/sql/subquery/lateral/lateral_join_nested.test            ================================================================================
+Query unexpectedly succeeded! (test/sql/subquery/lateral/lateral_join_nested.test:23)!
+================================================================================
+SELECT i1.i, SUM(r2.k), COUNT(*) FROM integers i1, LATERAL (SELECT i1.i+i2.i FROM integers i2, LATERAL (SELECT i1.i+i2.i+i3.i FROM integers i3) r3) r2(k) GROUP BY i1.i ORDER BY i1.i;
+================================================================================
+i       sum(r2.k)       count_star()
+INTEGER HUGEINT BIGINT
+[ Rows: 4]
+NULL    NULL    16
+1       36      16
+2       48      16
+3       60      16
+
+
+-------------------------------------------------------------------------------
+test/sql/subquery/lateral/lateral_join_nested.test
+-------------------------------------------------------------------------------
+/home/mayank/Mayank/Mayank_2022-23/CMU_Courses/15-721_Database_Systems/duckdb/test/sqlite/test_sqllogictest.cpp:178
+...............................................................................
+
+test/sql/subquery/lateral/lateral_join_nested.test:23: FAILED:
+explicitly with message:
+  0
+
+[659/2333] (28%): test/sql/subquery/scalar/test_subquery_any_join.test          ================================================================================
+Query unexpectedly failed (test/sql/subquery/scalar/test_subquery_any_join.test:31)
+================================================================================
+SELECT i IN (SELECT i1.i FROM (SELECT * FROM integers i1 WHERE i1.i=integers.i) i1 RIGHT JOIN generate_series(1, 2, 1) tbl(i) ON i1.i=tbl.i) FROM integers ORDER BY i NULLS LAST;
+================================================================================
+Actual result:
+Invalid Error: Unoptimized statement differs from original result!
+Original Result:
+INTERNAL Error: Assertion triggered in file "/home/mayank/Mayank/Mayank_2022-23/CMU_Courses/15-721_Database_Systems/duckdb/src/planner/operator/logical_join.cpp" on line 56: colref.depth == 0
+Unoptimized:
+(i = ANY(SELECT i1.i FROM (SELECT * FROM integers AS i1 WHERE (i1.i = integers.i)) AS i1 RIGHT JOIN generate_series(1, 2, 1) AS tbl(i) ON ((i1.i = tbl.i))))
+BOOLEAN
+[ Rows: 4]
+true
+true
+NULL
+NULL
+
+
+
+-------------------------------------------------------------------------------
+test/sql/subquery/scalar/test_subquery_any_join.test
+-------------------------------------------------------------------------------
+/home/mayank/Mayank/Mayank_2022-23/CMU_Courses/15-721_Database_Systems/duckdb/test/sqlite/test_sqllogictest.cpp:178
+...............................................................................
+
+test/sql/subquery/scalar/test_subquery_any_join.test:31: FAILED:
+explicitly with message:
+  0
+
+[814/2333] (34%): test/sql/copy/csv/test_union_by_name.test                     ================================================================================
+Query unexpectedly succeeded! (test/sql/copy/csv/test_union_by_name.test:32)!
+================================================================================
+SELECT * FROM read_csv_auto('duckdb_unittest_tempdir/88898/ubn*.csv');
+================================================================================
+a       b
+BIGINT  BIGINT
+[ Rows: 7]
+3       4
+5       6
+1       NULL
+2       NULL
+9223372036854775807     NULL
+100     101
+102     103
+
+
+-------------------------------------------------------------------------------
+test/sql/copy/csv/test_union_by_name.test
+-------------------------------------------------------------------------------
+/home/mayank/Mayank/Mayank_2022-23/CMU_Courses/15-721_Database_Systems/duckdb/test/sqlite/test_sqllogictest.cpp:178
+...............................................................................
+
+test/sql/copy/csv/test_union_by_name.test:32: FAILED:
+explicitly with message:
+  0
+
+[2333/2333] (100%): test/sql/topn/test_top_n_lists.test                         ^[[B
+===============================================================================
+test cases:   2333 |   2326 passed | 7 failed
+assertions: 204189 | 204182 passed | 7 failed

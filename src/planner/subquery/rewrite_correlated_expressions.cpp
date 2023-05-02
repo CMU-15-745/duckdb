@@ -94,7 +94,6 @@ RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelatedRecur
 
 void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelatedSubquery(
     BoundSubqueryExpression &expr) {
-	expr.Print();
 	// rewrite the binding in the correlated list of the subquery)
 	for (auto &corr : expr.binder->correlated_columns) {
 		auto entry = correlated_map.find(corr.binding);
