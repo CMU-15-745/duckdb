@@ -21,39 +21,37 @@ RewriteCorrelatedExpressions::RewriteCorrelatedExpressions(ColumnBinding base_bi
 void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 	if (recursive_rewrite) {
 		// Update column bindings from left child of lateral to right child
-		std::cout<<"RewriteCorrelatedExpressions::VisitOperator recursive rewrite start";
-		switch(op.type) {
-			case LogicalOperatorType::LOGICAL_JOIN:
-			case LogicalOperatorType::LOGICAL_DELIM_JOIN:
-			case LogicalOperatorType::LOGICAL_COMPARISON_JOIN:
-			case LogicalOperatorType::LOGICAL_ANY_JOIN:
-			case LogicalOperatorType::LOGICAL_CROSS_PRODUCT:
-			case LogicalOperatorType::LOGICAL_POSITIONAL_JOIN:
-			case LogicalOperatorType::LOGICAL_ASOF_JOIN:
-			case LogicalOperatorType::LOGICAL_DEPENDENT_JOIN:
-			    D_ASSERT(op.children.size() == 2);
-			    VisitOperator(*op.children[0]);
-			    join_depth++;
-			    VisitOperator(*op.children[1]);
-			    join_depth--;
-			    break;
-		    default:
-			    VisitOperatorChildren(op);
+		std::cout << "RewriteCorrelatedExpressions::VisitOperator recursive rewrite start" << std::endl;
+		switch (op.type) {
+		case LogicalOperatorType::LOGICAL_JOIN:
+		case LogicalOperatorType::LOGICAL_DELIM_JOIN:
+		case LogicalOperatorType::LOGICAL_COMPARISON_JOIN:
+		case LogicalOperatorType::LOGICAL_ANY_JOIN:
+		case LogicalOperatorType::LOGICAL_CROSS_PRODUCT:
+		case LogicalOperatorType::LOGICAL_POSITIONAL_JOIN:
+		case LogicalOperatorType::LOGICAL_ASOF_JOIN:
+		case LogicalOperatorType::LOGICAL_DEPENDENT_JOIN:
+			D_ASSERT(op.children.size() == 2);
+			VisitOperator(*op.children[0]);
+			join_depth++;
+			VisitOperator(*op.children[1]);
+			join_depth--;
+			break;
+		default:
+			VisitOperatorChildren(op);
 		}
-		VisitOperatorExpressions(op);
-	} else {
-		std::cout<<"RewriteCorrelatedExpressions::VisitOperator normal rewrite start";
-		if (op.type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
-			auto &plan = (LogicalDependentJoin &)op;
-			for (auto &corr: plan.correlated_columns) {
-				auto entry = correlated_map.find(corr.binding);
-				if (entry != correlated_map.end()) {
-					corr.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
-				}
+	}
+	std::cout<<"RewriteCorrelatedExpressions::VisitOperator normal rewrite start" << std::endl;
+	if (op.type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
+		auto &plan = (LogicalDependentJoin &)op;
+		for (auto &corr: plan.correlated_columns) {
+			auto entry = correlated_map.find(corr.binding);
+			if (entry != correlated_map.end()) {
+				corr.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
 			}
 		}
-		VisitOperatorExpressions(op);
 	}
+	VisitOperatorExpressions(op);
 }
 
 unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRefExpression &expr,

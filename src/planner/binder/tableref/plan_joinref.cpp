@@ -241,7 +241,9 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 	}
 
 	auto old_plan_subquery = plan_subquery;
-	plan_subquery = false;
+	if (ref.lateral) {
+		plan_subquery = false;
+	}
 	auto left = CreatePlan(*ref.left);
 	auto right = CreatePlan(*ref.right);
 	plan_subquery = old_plan_subquery;
@@ -276,6 +278,12 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 																					std::move(ref.condition));
 		} else {
 			std::cout << "In Binder::PlanJoinRef Creating LateralJoin "<< std::endl;
+			std::cout << "LeftChild" << std::endl;
+			std::cout << left->ToString() << std::endl;
+			std::cout << "RightChild" << std::endl;
+			std::cout << right->ToString() << std::endl;
+
+
 			auto res = PlanLateralJoin(std::move(left),
 																 std::move(right),
 																 ref.correlated_columns,
@@ -283,6 +291,7 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 														 		 std::move(ref.condition),
 														 		 vector<JoinCondition>());
 			std::cout << "COMPLETED PlanLateralJoin" << std::endl;
+			std::cout << res->ToString() << std::endl;
 			if (has_unplanned_subqueries) {
 				RecursiveSubqueryPlanner plan(*this);
 				std::cout <<"RecursiveSubqueryPlanner Starting VisitOperator" <<std::endl;

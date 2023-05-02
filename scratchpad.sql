@@ -11,10 +11,10 @@ SELECT *
 select *
     from (select 42) t(i),
          (select *
-            from (select 142 k) t3(k),
-                 (select k) t4(l)) t2(j);
+            from (select 142) t3(k),
+                 (select k) t4(l));
 
-i = 42, j = 142
+i = 42, k = 142, l = 142
 
 -- Bind SELECT_STMT;
 -- Bind FROM_CLAUSE;
@@ -34,9 +34,9 @@ select * from (select 42) t(i)
 where i in (select l from (select 42) t(l) ,
                           (select i * 2) t2(j),
                           (select i + j) t3(k)
-            where k in (select * from (select 42 l) t4(l) where i-k = 0));
+            where k in (select l*3 from (select 42 l) t4(l) where k-i = j));
 
-No Rows
+i = 42
 
 
 -- Apr 4th '23 (2023-04-01): SQL Commands Test on sambinder: --
@@ -145,7 +145,7 @@ FROM (SELECT 42) t(i),
       FROM (SELECT 142 k) t3(k),
            (SELECT *
                FROM (SELECT 242 l) t4(l),
-                    (SELECT 1 WHERE i+l+k=0) t5(m)));
+                    (SELECT 1 WHERE i+l+k=426) t5(m)));
 
 No Rows
 
@@ -191,8 +191,8 @@ SELECT *
 FROM (SELECT 42) t4(m)
 WHERE m IN (
     SELECT i FROM
-    (SELECT m) t(i),
-    (SELECT i*m/2 * 2/m) t2(j));
+                 (SELECT m) t(i),
+                 (SELECT i*m/2 * 2/m) t2(j));
 
 m = 42
 
