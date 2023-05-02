@@ -3,8 +3,8 @@
 
 namespace duckdb {
 
-static unique_ptr<FunctionData> JSONMergePatchBind(ClientContext &context, ScalarFunction &bound_function,
-                                                   vector<unique_ptr<Expression>> &arguments) {
+static duckdb::unique_ptr<FunctionData> JSONMergePatchBind(ClientContext &context, ScalarFunction &bound_function,
+                                                           vector<duckdb::unique_ptr<Expression>> &arguments) {
 	if (arguments.size() < 2) {
 		throw InvalidInputException("json_merge_patch requires at least two parameters");
 	}
@@ -96,13 +96,13 @@ static void MergePatchFunction(DataChunk &args, ExpressionState &state, Vector &
 	}
 }
 
-CreateScalarFunctionInfo JSONFunctions::GetMergePatchFunction() {
+ScalarFunctionSet JSONFunctions::GetMergePatchFunction() {
 	ScalarFunction fun("json_merge_patch", {}, JSONCommon::JSONType(), MergePatchFunction, JSONMergePatchBind, nullptr,
 	                   nullptr, JSONFunctionLocalState::Init);
 	fun.varargs = LogicalType::ANY;
 	fun.null_handling = FunctionNullHandling::SPECIAL_HANDLING;
 
-	return CreateScalarFunctionInfo(fun);
+	return ScalarFunctionSet(fun);
 }
 
 } // namespace duckdb

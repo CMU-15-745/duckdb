@@ -25,7 +25,7 @@ ColumnData::ColumnData(BlockManager &block_manager, DataTableInfo &info, idx_t c
     : start(start_row), count(0), block_manager(block_manager), info(info), column_index(column_index),
       type(std::move(type_p)), parent(parent), version(0) {
 	if (!parent) {
-		stats = make_unique<SegmentStatistics>(type);
+		stats = make_uniq<SegmentStatistics>(type);
 	}
 }
 
@@ -34,10 +34,10 @@ ColumnData::ColumnData(ColumnData &other, idx_t start, ColumnData *parent)
       column_index(other.column_index), type(std::move(other.type)), parent(parent),
       version(parent ? parent->version + 1 : 0) {
 	if (other.updates) {
-		updates = make_unique<UpdateSegment>(*other.updates, *this);
+		updates = make_uniq<UpdateSegment>(*other.updates, *this);
 	}
 	if (other.stats) {
-		stats = make_unique<SegmentStatistics>(other.stats->statistics.Copy());
+		stats = make_uniq<SegmentStatistics>(other.stats->statistics.Copy());
 	}
 	idx_t offset = 0;
 	for (auto &segment : other.data.Segments()) {
@@ -289,7 +289,7 @@ void ColumnData::InitializeAppend(ColumnAppendState &state) {
 
 	D_ASSERT(state.current->segment_type == ColumnSegmentType::TRANSIENT);
 	state.current->InitializeAppend(state);
-	D_ASSERT(state.current->function->append);
+	D_ASSERT(state.current->function.get().append);
 }
 
 void ColumnData::AppendData(BaseStatistics &stats, ColumnAppendState &state, UnifiedVectorFormat &vdata, idx_t count) {
@@ -366,7 +366,7 @@ void ColumnData::Update(TransactionData transaction, idx_t column_index, Vector 
                         idx_t update_count) {
 	lock_guard<mutex> update_guard(update_lock);
 	if (!updates) {
-		updates = make_unique<UpdateSegment>(*this);
+		updates = make_uniq<UpdateSegment>(*this);
 	}
 	Vector base_vector(type);
 	ColumnScanState state;
@@ -415,7 +415,7 @@ void ColumnData::CommitDropColumn() {
 
 unique_ptr<ColumnCheckpointState> ColumnData::CreateCheckpointState(RowGroup &row_group,
                                                                     PartialBlockManager &partial_block_manager) {
-	return make_unique<ColumnCheckpointState>(row_group, *this, partial_block_manager);
+	return make_uniq<ColumnCheckpointState>(row_group, *this, partial_block_manager);
 }
 
 void ColumnData::CheckpointScan(ColumnSegment *segment, ColumnScanState &state, idx_t row_group_start, idx_t count,
@@ -520,7 +520,7 @@ void ColumnData::GetStorageInfo(idx_t row_group_index, vector<idx_t> col_path, T
 		column_info.segment_type = type.ToString();
 		column_info.segment_start = segment->start;
 		column_info.segment_count = segment->count;
-		column_info.compression_type = CompressionTypeToString(segment->function->type);
+		column_info.compression_type = CompressionTypeToString(segment->function.get().type);
 		column_info.segment_stats = segment->stats.statistics.ToString();
 		column_info.has_updates = updates ? true : false;
 		// persistent

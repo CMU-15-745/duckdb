@@ -22,7 +22,7 @@ JSONStructureNode::JSONStructureNode() : initialized(false) {
 }
 
 JSONStructureNode::JSONStructureNode(yyjson_val *key_p, yyjson_val *val_p)
-    : key(make_unique<string>(unsafe_yyjson_get_str(key_p), unsafe_yyjson_get_len(key_p))), initialized(false) {
+    : key(make_uniq<string>(unsafe_yyjson_get_str(key_p), unsafe_yyjson_get_len(key_p))), initialized(false) {
 	D_ASSERT(yyjson_is_str(key_p));
 	JSONStructure::ExtractStructure(val_p, *this);
 }
@@ -476,11 +476,11 @@ static void GetStructureFunctionInternal(ScalarFunctionSet &set, const LogicalTy
 	                               JSONFunctionLocalState::Init));
 }
 
-CreateScalarFunctionInfo JSONFunctions::GetStructureFunction() {
+ScalarFunctionSet JSONFunctions::GetStructureFunction() {
 	ScalarFunctionSet set("json_structure");
 	GetStructureFunctionInternal(set, LogicalType::VARCHAR);
 	GetStructureFunctionInternal(set, JSONCommon::JSONType());
-	return CreateScalarFunctionInfo(set);
+	return set;
 }
 
 static LogicalType StructureToTypeArray(ClientContext &context, const JSONStructureNode &node, const idx_t max_depth,

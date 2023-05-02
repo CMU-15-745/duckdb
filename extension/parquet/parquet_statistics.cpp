@@ -13,9 +13,9 @@ namespace duckdb {
 using duckdb_parquet::format::ConvertedType;
 using duckdb_parquet::format::Type;
 
-static unique_ptr<BaseStatistics> CreateNumericStats(const LogicalType &type,
-                                                     const duckdb_parquet::format::SchemaElement &schema_ele,
-                                                     const duckdb_parquet::format::Statistics &parquet_stats) {
+static duckdb::unique_ptr<BaseStatistics> CreateNumericStats(const LogicalType &type,
+                                                             const duckdb_parquet::format::SchemaElement &schema_ele,
+                                                             const duckdb_parquet::format::Statistics &parquet_stats) {
 	auto stats = NumericStats::CreateUnknown(type);
 
 	// for reasons unknown to science, Parquet defines *both* `min` and `min_value` as well as `max` and
@@ -116,6 +116,9 @@ Value ParquetStatisticsUtils::ConvertValue(const LogicalType &type,
 		}
 		case Type::BYTE_ARRAY:
 		case Type::FIXED_LEN_BYTE_ARRAY:
+			if (stats.size() > GetTypeIdSize(type.InternalType())) {
+				throw InternalException("Incorrect stats size for type %s", type.ToString());
+			}
 			switch (type.InternalType()) {
 			case PhysicalType::INT16:
 				return Value::DECIMAL(
@@ -225,7 +228,7 @@ unique_ptr<BaseStatistics> ParquetStatisticsUtils::TransformColumnStatistics(con
 		return nullptr;
 	}
 	auto &parquet_stats = column_chunk.meta_data.statistics;
-	unique_ptr<BaseStatistics> row_group_stats;
+	duckdb::unique_ptr<BaseStatistics> row_group_stats;
 
 	switch (type.id()) {
 	case LogicalTypeId::UTINYINT:
