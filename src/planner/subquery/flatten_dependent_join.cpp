@@ -99,8 +99,8 @@ bool SubqueryDependentFilter(Expression *expr) {
 unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal(unique_ptr<LogicalOperator> plan,
                                                                                  bool &parent_propagate_null_values,
                                                                                  idx_t join_depth) {
-	auto left_depth = (plan->swapped_children ? join_depth : join_depth + 1);
-	auto right_depth = (plan->swapped_children ? join_depth + 1 : join_depth);
+	auto left_depth = (plan->swapped_children ? join_depth + 1 : join_depth);
+	auto right_depth = (plan->swapped_children ? join_depth : join_depth + 1);
 
 	// first check if the logical operator has correlated expressions
 	auto entry = has_correlated_expressions.find(plan.get());
