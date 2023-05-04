@@ -1774,6 +1774,32 @@ shell/fast:
 .PHONY : shell/fast
 
 #=============================================================================
+# Target rules for targets named parquet_extension
+
+# Build rule for target.
+parquet_extension: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 parquet_extension
+.PHONY : parquet_extension
+
+# fast build rule for target.
+parquet_extension/fast:
+	$(MAKE) $(MAKESILENT) -f extension/parquet/CMakeFiles/parquet_extension.dir/build.make extension/parquet/CMakeFiles/parquet_extension.dir/build
+.PHONY : parquet_extension/fast
+
+#=============================================================================
+# Target rules for targets named parquet_loadable_extension
+
+# Build rule for target.
+parquet_loadable_extension: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 parquet_loadable_extension
+.PHONY : parquet_loadable_extension
+
+# fast build rule for target.
+parquet_loadable_extension/fast:
+	$(MAKE) $(MAKESILENT) -f extension/parquet/CMakeFiles/parquet_loadable_extension.dir/build.make extension/parquet/CMakeFiles/parquet_loadable_extension.dir/build
+.PHONY : parquet_loadable_extension/fast
+
+#=============================================================================
 # Target rules for targets named unittest
 
 # Build rule for target.
@@ -2763,6 +2789,8 @@ help:
 	@echo "... imdb"
 	@echo "... loadable_extension_demo_loadable_extension"
 	@echo "... loadable_extension_optimizer_demo_loadable_extension"
+	@echo "... parquet_extension"
+	@echo "... parquet_loadable_extension"
 	@echo "... shell"
 	@echo "... sqlite3_api_wrapper"
 	@echo "... sqlite3_api_wrapper_sqlite3"
