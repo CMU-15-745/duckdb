@@ -13,9 +13,9 @@ namespace duckdb {
 
 RewriteCorrelatedExpressions::RewriteCorrelatedExpressions(ColumnBinding base_binding,
                                                            column_binding_map_t<idx_t> &correlated_map,
-                                                           idx_t join_depth,
-                                                           bool recursive_rewrite)
-    : base_binding(base_binding), correlated_map(correlated_map), join_depth(join_depth), recursive_rewrite(recursive_rewrite) {
+                                                           idx_t join_depth, bool recursive_rewrite)
+    : base_binding(base_binding), correlated_map(correlated_map), join_depth(join_depth),
+      recursive_rewrite(recursive_rewrite) {
 }
 
 void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
@@ -32,15 +32,12 @@ void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 		case LogicalOperatorType::LOGICAL_DEPENDENT_JOIN:
 			D_ASSERT(op.children.size() == 2);
 
-			if (op.swapped_children)
-			{
+			if (op.swapped_children) {
 				join_depth++;
 				VisitOperator(*op.children[0]);
 				join_depth--;
 				VisitOperator(*op.children[1]);
-			}
-			else
-			{
+			} else {
 				VisitOperator(*op.children[0]);
 				join_depth++;
 				VisitOperator(*op.children[1]);
@@ -53,7 +50,7 @@ void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 	}
 	if (op.type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
 		auto &plan = (LogicalDependentJoin &)op;
-		for (auto &corr: plan.correlated_columns) {
+		for (auto &corr : plan.correlated_columns) {
 			auto entry = correlated_map.find(corr.binding);
 			if (entry != correlated_map.end()) {
 				corr.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
@@ -72,15 +69,15 @@ unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRef
 	// replace with the entry referring to the duplicate eliminated scan
 	// if this assertion occurs it generally means the correlated expressions were not propagated correctly
 	// through different binders
-	D_ASSERT(expr.depth == 1+join_depth);
+	D_ASSERT(expr.depth == 1 + join_depth);
 	auto entry = correlated_map.find(expr.binding);
 	D_ASSERT(entry != correlated_map.end());
 
 	expr.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
-	if (recursive_rewrite){
+	if (recursive_rewrite) {
 		D_ASSERT(expr.depth > 1);
 		expr.depth--;
-	} else{
+	} else {
 		expr.depth = 0;
 	}
 	return nullptr;
@@ -113,17 +110,18 @@ void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelated
 		}
 	}
 	// TODO: Cleanup and find a better way to do this
-	auto& node = *expr.subquery;
+	auto &node = *expr.subquery;
 	if (node.type == QueryNodeType::SELECT_NODE) {
-		auto &bound_select = (BoundSelectNode&)node;
+		auto &bound_select = (BoundSelectNode &)node;
 		if (bound_select.from_table) {
-			BoundTableRef& table_ref = *bound_select.from_table;
+			BoundTableRef &table_ref = *bound_select.from_table;
 			if (table_ref.type == TableReferenceType::JOIN) {
-				auto &bound_join = (BoundJoinRef&)table_ref;
-				for (auto& corr: bound_join.correlated_columns) {
+				auto &bound_join = (BoundJoinRef &)table_ref;
+				for (auto &corr : bound_join.correlated_columns) {
 					auto entry = correlated_map.find(corr.binding);
 					if (entry != correlated_map.end()) {
-						corr.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
+						corr.binding =
+						    ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
 					}
 				}
 			}

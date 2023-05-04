@@ -7,7 +7,8 @@
 
 namespace duckdb {
 
-HasCorrelatedExpressions::HasCorrelatedExpressions(const vector<CorrelatedColumnInfo> &correlated, bool lateral, idx_t join_depth)
+HasCorrelatedExpressions::HasCorrelatedExpressions(const vector<CorrelatedColumnInfo> &correlated, bool lateral,
+                                                   idx_t join_depth)
     : has_correlated_expressions(false), lateral(lateral), correlated_columns(correlated), join_depth(join_depth) {
 }
 
@@ -27,9 +28,9 @@ unique_ptr<Expression> HasCorrelatedExpressions::VisitReplace(BoundColumnRefExpr
 		}
 		throw InternalException("Expression with depth > 1 detected in non-lateral join");
 	}
-	// Note: This is added, since we only want to set has_correlated_expressions to true when the BoundSubqueryExpression
-	// has the same bindings as one of the correlated_columns from the left hand side (correlated_columns is the
-	// correlated_columns from left hand side)
+	// Note: This is added, since we only want to set has_correlated_expressions to true when the
+	// BoundSubqueryExpression has the same bindings as one of the correlated_columns from the left hand side
+	// (correlated_columns is the correlated_columns from left hand side)
 	bool found_match = false;
 	for (idx_t i = 0; i < correlated_columns.size(); i++) {
 		if (correlated_columns[i].binding == expr.binding) {

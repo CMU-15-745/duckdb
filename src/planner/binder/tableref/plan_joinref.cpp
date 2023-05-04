@@ -20,7 +20,7 @@
 
 namespace duckdb {
 
-    //! Create a JoinCondition from a comparison
+//! Create a JoinCondition from a comparison
 static bool CreateJoinCondition(Expression &expr, const unordered_set<idx_t> &left_bindings,
                                 const unordered_set<idx_t> &right_bindings, vector<JoinCondition> &conditions) {
 	// comparison
@@ -253,20 +253,12 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 		// lateral join
 		if (!plan_subquery) {
 			has_unplanned_subqueries = true;
-			return LogicalDependentJoin::Create(std::move(left),
-																					std::move(right),
-																					ref.correlated_columns,
-																					ref.type,
-																					std::move(ref.condition));
-			} else {
+			return LogicalDependentJoin::Create(std::move(left), std::move(right), ref.correlated_columns, ref.type,
+			                                    std::move(ref.condition));
+		} else {
 
-
-			auto res = PlanLateralJoin(std::move(left),
-																 std::move(right),
-																 ref.correlated_columns,
-																 ref.type,
-														 		 std::move(ref.condition),
-														 		 vector<JoinCondition>());
+			auto res = PlanLateralJoin(std::move(left), std::move(right), ref.correlated_columns, ref.type,
+			                           std::move(ref.condition), vector<JoinCondition>());
 			if (has_unplanned_subqueries) {
 				RecursiveSubqueryPlanner plan(*this);
 				plan.VisitOperator(*res);

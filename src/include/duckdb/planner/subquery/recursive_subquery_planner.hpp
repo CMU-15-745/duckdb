@@ -14,12 +14,13 @@ namespace duckdb {
 
 class RecursiveSubqueryPlanner : public LogicalOperatorVisitor {
 public:
-	explicit RecursiveSubqueryPlanner(Binder &binder) : binder(binder) {}
+	explicit RecursiveSubqueryPlanner(Binder &binder) : binder(binder) {
+	}
 	void VisitOperator(LogicalOperator &op) override;
 	unique_ptr<Expression> VisitReplace(BoundSubqueryExpression &expr, unique_ptr<Expression> *expr_ptr) override;
+
 private:
 	unique_ptr<LogicalOperator> root;
 	Binder &binder;
 };
 } // namespace duckdb
-

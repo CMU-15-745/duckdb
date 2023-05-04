@@ -137,24 +137,24 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 		bool is_lateral = false;
 		auto all_correlated_columns = vector<CorrelatedColumnInfo>();
 		// Note: Handle Left side
-//		for(auto& cor_col: left_binder.correlated_columns) {
-//			if (cor_col.depth >= 1) {
-//				// This means that correlations are with columns from the parents
-//				all_correlated_columns.push_back(cor_col);
-//			}
-//		}
+		//		for(auto& cor_col: left_binder.correlated_columns) {
+		//			if (cor_col.depth >= 1) {
+		//				// This means that correlations are with columns from the parents
+		//				all_correlated_columns.push_back(cor_col);
+		//			}
+		//		}
 
-		for(auto& cor_col: right_binder.correlated_columns) {
+		for (auto &cor_col : right_binder.correlated_columns) {
 			if (cor_col.depth == 1) {
 				// This means that correlations are between left and right child of the join
 				is_lateral = true;
 			}
-			if  (cor_col.depth >= 1) {
+			if (cor_col.depth >= 1) {
 				// This means that there are correlations either from the left or the parent
-//				auto idx = std::find(all_correlated_columns.begin(), all_correlated_columns.end(), cor_col);
-//				if (idx == all_correlated_columns.end()) {
-					all_correlated_columns.push_back(cor_col);
-//				}
+				//				auto idx = std::find(all_correlated_columns.begin(), all_correlated_columns.end(),
+				//cor_col); 				if (idx == all_correlated_columns.end()) {
+				all_correlated_columns.push_back(cor_col);
+				//				}
 			}
 		}
 		result->lateral = is_lateral;
@@ -303,18 +303,14 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 	// MoveCorrelatedExpressions(left_binder);
 	// MoveCorrelatedExpressions(right_binder);
 
-	for (auto col : left_binder.correlated_columns)
-	{
-		if (col.depth >= 1)
-		{
+	for (auto col : left_binder.correlated_columns) {
+		if (col.depth >= 1) {
 			AddCorrelatedColumn(col);
 		}
 	}
 
-	for (auto col : right_binder.correlated_columns)
-	{
-		if (col.depth > 1)
-		{
+	for (auto col : right_binder.correlated_columns) {
+		if (col.depth > 1) {
 			col.depth--;
 			AddCorrelatedColumn(col);
 		}

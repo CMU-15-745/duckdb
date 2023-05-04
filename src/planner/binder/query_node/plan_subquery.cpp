@@ -336,8 +336,10 @@ void RecursiveSubqueryPlanner::VisitOperator(LogicalOperator &op) {
 		root = std::move(op.children[0]);
 		D_ASSERT(root);
 		if (root->type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
-			auto& new_root = (LogicalDependentJoin &)*root;
-			root = binder.PlanLateralJoin(std::move(new_root.children[0]), std::move(new_root.children[1]), new_root.correlated_columns, new_root.join_type, std::move(new_root.join_condition), std::move(new_root.conditions));
+			auto &new_root = (LogicalDependentJoin &)*root;
+			root = binder.PlanLateralJoin(std::move(new_root.children[0]), std::move(new_root.children[1]),
+			                              new_root.correlated_columns, new_root.join_type,
+			                              std::move(new_root.join_condition), std::move(new_root.conditions));
 		}
 		VisitOperatorExpressions(op);
 		op.children[0] = std::move(root);
@@ -348,7 +350,8 @@ void RecursiveSubqueryPlanner::VisitOperator(LogicalOperator &op) {
 	}
 }
 
-unique_ptr<Expression> RecursiveSubqueryPlanner::VisitReplace(BoundSubqueryExpression &expr, unique_ptr<Expression> *expr_ptr) {
+unique_ptr<Expression> RecursiveSubqueryPlanner::VisitReplace(BoundSubqueryExpression &expr,
+                                                              unique_ptr<Expression> *expr_ptr) {
 	return binder.PlanSubquery(expr, root);
 }
 
@@ -363,7 +366,6 @@ unique_ptr<Expression> Binder::PlanSubquery(BoundSubqueryExpression &expr, uniqu
 
 	// now we actually flatten the subquery
 	auto plan = std::move(subquery_root);
-
 
 	unique_ptr<Expression> result_expression;
 	if (!expr.IsCorrelated()) {
@@ -403,11 +405,9 @@ void Binder::PlanSubqueries(unique_ptr<Expression> &expr_ptr, unique_ptr<Logical
 	}
 }
 
-unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> left,
-																										unique_ptr<LogicalOperator> right,
+unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> left, unique_ptr<LogicalOperator> right,
                                                     vector<CorrelatedColumnInfo> &correlated_columns,
-                                                    JoinType join_type,
-                                                    unique_ptr<Expression> condition,
+                                                    JoinType join_type, unique_ptr<Expression> condition,
                                                     vector<JoinCondition> comp_conditions) {
 	// scan the right operator for correlated columns
 	// correlated LATERAL JOIN
@@ -418,7 +418,7 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
 		LogicalComparisonJoin::ExtractJoinConditions(join_type, left, right, std::move(condition), conditions,
 		                                             arbitrary_expressions);
 	}
-	for(auto& comp_condition: comp_conditions) {
+	for (auto &comp_condition : comp_conditions) {
 		conditions.push_back(std::move(comp_condition));
 	}
 

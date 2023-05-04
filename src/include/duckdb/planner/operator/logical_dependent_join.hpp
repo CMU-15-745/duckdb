@@ -20,7 +20,9 @@ namespace duckdb {
 
 class LogicalDependentJoin : public LogicalComparisonJoin {
 public:
-	explicit LogicalDependentJoin (unique_ptr<LogicalOperator> left, unique_ptr<LogicalOperator> right, vector<CorrelatedColumnInfo> correlated_columns, JoinType type, unique_ptr<Expression> condition);
+	explicit LogicalDependentJoin(unique_ptr<LogicalOperator> left, unique_ptr<LogicalOperator> right,
+	                              vector<CorrelatedColumnInfo> correlated_columns, JoinType type,
+	                              unique_ptr<Expression> condition);
 
 	//! The conditions of the join
 	unique_ptr<Expression> join_condition;
@@ -28,7 +30,9 @@ public:
 	vector<CorrelatedColumnInfo> correlated_columns;
 
 public:
-	static unique_ptr<LogicalOperator> Create(unique_ptr<LogicalOperator> left, unique_ptr<LogicalOperator> right, vector<CorrelatedColumnInfo> correlated_columns, JoinType type, unique_ptr<Expression> condition);
+	static unique_ptr<LogicalOperator> Create(unique_ptr<LogicalOperator> left, unique_ptr<LogicalOperator> right,
+	                                          vector<CorrelatedColumnInfo> correlated_columns, JoinType type,
+	                                          unique_ptr<Expression> condition);
 	void Serialize(FieldWriter &writer) const override;
 };
 } // namespace duckdb

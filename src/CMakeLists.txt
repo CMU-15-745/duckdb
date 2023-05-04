@@ -26,7 +26,10 @@ if(AMALGAMATION_BUILD)
     add_definitions(/bigobj)
   endif()
 
-  add_library(duckdb SHARED "${PROJECT_SOURCE_DIR}/src/amalgamation/duckdb.cpp" include/duckdb/planner/subquery/recursive_subquery_planner.hpp)
+  add_library(
+    duckdb SHARED
+    "${PROJECT_SOURCE_DIR}/src/amalgamation/duckdb.cpp"
+    include/duckdb/planner/subquery/recursive_subquery_planner.hpp)
   target_link_libraries(duckdb ${DUCKDB_SYSTEM_LIBS})
   link_threads(duckdb)
   link_extension_libraries(duckdb)
@@ -75,7 +78,10 @@ else()
       duckdb_fastpforlib
       duckdb_mbedtls)
 
-  add_library(duckdb SHARED ${ALL_OBJECT_FILES} include/duckdb/planner/subquery/recursive_subquery_planner.hpp)
+  add_library(
+    duckdb SHARED
+    ${ALL_OBJECT_FILES}
+    include/duckdb/planner/subquery/recursive_subquery_planner.hpp)
   target_link_libraries(duckdb ${DUCKDB_LINK_LIBS})
   link_threads(duckdb)
   link_extension_libraries(duckdb)
