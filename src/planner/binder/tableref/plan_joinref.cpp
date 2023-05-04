@@ -240,6 +240,7 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 		std::cout << "Join Conditions " << ref.condition->ToString() << std::endl;
 	}
 
+	bool swapped_children = false;
 	auto old_plan_subquery = plan_subquery;
 	if (ref.lateral) {
 		plan_subquery = false;
@@ -247,23 +248,18 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 	auto left = CreatePlan(*ref.left);
 	auto right = CreatePlan(*ref.right);
 	plan_subquery = old_plan_subquery;
-	// if (!ref.lateral && !ref.correlated_columns.empty()) {
-		// non-lateral join with correlated columns
-		// this happens if there is a join (or cross product) in a correlated subquery
-		// due to the lateral binder the expression depth of all correlated columns in the "ref.correlated_columns" set
-		// is 1 too high
-		// we reduce expression depth of all columns in the "ref.correlated_columns" set by 1
-	//   LateralBinder::ReduceExpressionDepth(*right, ref.correlated_columns);
-	// }
+
 	if (ref.type == JoinType::RIGHT && ref.ref_type != JoinRefType::ASOF &&
 	    ClientConfig::GetConfig(context).enable_optimizer) {
 		// we turn any right outer joins into left outer joins for optimization purposes
 		// they are the same but with sides flipped, so treating them the same simplifies life
 		ref.type = JoinType::LEFT;
 		std::swap(left, right);
+		swapped_children = true;
 	}
 	if (ref.lateral) {
 		std::cout << "In Binder::PlanJoinRef (lateral join) (plan_subquery, " << plan_subquery << ")"<< std::endl;
+		D_ASSERT(swapped_children == false);
 		// lateral join
 		std::cout << "Checking plan_subquery" << std::endl;
 		// std::cout << "\tLeft Plan: \n" << left->ToString() << std::endl;
@@ -311,6 +307,7 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 	}
 	if (ref.type == JoinType::INNER && (ref.condition->HasSubquery() || HasCorrelatedColumns(*ref.condition)) &&
 	    ref.ref_type == JoinRefType::REGULAR) {
+		D_ASSERT(swapped_children == false);
 		// inner join, generate a cross product + filter
 		// this will be later turned into a proper join by the join order optimizer
 		auto root = LogicalCrossProduct::Create(std::move(left), std::move(right));
@@ -327,6 +324,8 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 	// now create the join operator from the join condition
 	auto result = LogicalComparisonJoin::CreateJoin(ref.type, ref.ref_type, std::move(left), std::move(right),
 	                                                std::move(ref.condition));
+	// set the flag on the logical operator about whether its left and right children were swapped
+	result->swapped_children = swapped_children;
 
 	LogicalOperator *join;
 	if (result->type == LogicalOperatorType::LOGICAL_FILTER) {
