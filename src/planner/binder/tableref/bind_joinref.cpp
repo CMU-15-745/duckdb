@@ -152,7 +152,7 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 			if (cor_col.depth >= 1) {
 				// This means that there are correlations either from the left or the parent
 				//				auto idx = std::find(all_correlated_columns.begin(), all_correlated_columns.end(),
-				//cor_col); 				if (idx == all_correlated_columns.end()) {
+				// cor_col); 				if (idx == all_correlated_columns.end()) {
 				all_correlated_columns.push_back(cor_col);
 				//				}
 			}
