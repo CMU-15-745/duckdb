@@ -48,6 +48,8 @@ public:
 	//! Estimated Cardinality
 	idx_t estimated_cardinality;
 	bool has_estimated_cardinality;
+	//! Swapped Children
+	bool swapped_children = false;
 
 	unique_ptr<EstimatedProperties> estimated_props;
 

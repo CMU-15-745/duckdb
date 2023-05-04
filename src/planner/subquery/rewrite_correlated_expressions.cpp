@@ -31,10 +31,21 @@ void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 		case LogicalOperatorType::LOGICAL_ASOF_JOIN:
 		case LogicalOperatorType::LOGICAL_DEPENDENT_JOIN:
 			D_ASSERT(op.children.size() == 2);
-			VisitOperator(*op.children[0]);
-			join_depth++;
-			VisitOperator(*op.children[1]);
-			join_depth--;
+
+			if (op.swapped_children)
+			{
+				join_depth++;
+				VisitOperator(*op.children[0]);
+				join_depth--;
+				VisitOperator(*op.children[1]);
+			}
+			else
+			{
+				VisitOperator(*op.children[0]);
+				join_depth++;
+				VisitOperator(*op.children[1]);
+				join_depth--;
+			}
 			break;
 		default:
 			VisitOperatorChildren(op);
