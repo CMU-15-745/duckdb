@@ -104,8 +104,8 @@ bool SubqueryDependentFilter(Expression *expr) {
 unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal(unique_ptr<LogicalOperator> plan,
                                                                                  bool &parent_propagate_null_values,
                                                                                  idx_t join_depth) {
-	auto left_depth = (plan->swapped_children ? join_depth : join_depth + 1);
-	auto right_depth = (plan->swapped_children ? join_depth + 1 : join_depth);
+	auto left_depth = (plan->swapped_children ? join_depth + 1 : join_depth);
+	auto right_depth = (plan->swapped_children ? join_depth : join_depth + 1);
 
 	// first check if the logical operator has correlated expressions
 	auto entry = has_correlated_expressions.find(plan.get());
@@ -123,6 +123,13 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 		auto delim_scan = make_unique<LogicalDelimGet>(delim_index, delim_types);
 		return LogicalCrossProduct::Create(std::move(plan), std::move(delim_scan));
 	}
+	std::cout<<"FlattenDependentJoins::PushDownDependentJoinInternal op type: "<< LogicalOperatorToString(plan->type)<< " swapped_children: " <<plan->swapped_children<< std::endl;
+	if (plan->swapped_children) {
+		D_ASSERT(plan->children.size() == 2);
+		std::cout<< "left_depth "<<left_depth << std::endl;
+		std::cout<< "right_depth "<<right_depth << std::endl;
+	}
+
 	switch (plan->type) {
 	case LogicalOperatorType::LOGICAL_UNNEST:
 	case LogicalOperatorType::LOGICAL_FILTER: {
