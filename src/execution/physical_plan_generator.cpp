@@ -58,7 +58,6 @@ unique_ptr<PhysicalOperator> PhysicalPlanGenerator::CreatePlan(unique_ptr<Logica
 	profiler.StartPhase("create_plan");
 	auto plan = CreatePlan(*op);
 	profiler.EndPhase();
-	
 
 	plan->Verify();
 	return plan;
@@ -218,6 +217,7 @@ unique_ptr<PhysicalOperator> PhysicalPlanGenerator::CreatePlan(LogicalOperator &
 		}
 		break;
 	case LogicalOperatorType::LOGICAL_JOIN:
+	case LogicalOperatorType::LOGICAL_DEPENDENT_JOIN:
 	case LogicalOperatorType::LOGICAL_INVALID: {
 		throw NotImplementedException("Unimplemented logical operator type!");
 	}

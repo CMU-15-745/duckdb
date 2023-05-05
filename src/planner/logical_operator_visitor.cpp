@@ -20,7 +20,6 @@ void LogicalOperatorVisitor::VisitOperatorChildren(LogicalOperator &op) {
 void LogicalOperatorVisitor::EnumerateExpressions(LogicalOperator &op,
                                                   const std::function<void(unique_ptr<Expression> *child)> &callback) {
 
-
 	switch (op.type) {
 	case LogicalOperatorType::LOGICAL_EXPRESSION_GET: {
 		auto &get = op.Cast<LogicalExpressionGet>();

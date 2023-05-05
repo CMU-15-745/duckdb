@@ -73,5 +73,4 @@ void PhysicalColumnDataScan::BuildPipelines(Pipeline &current, MetaPipeline &met
 	state.SetPipelineSource(current, *this);
 }
 
-
 } // namespace duckdb
