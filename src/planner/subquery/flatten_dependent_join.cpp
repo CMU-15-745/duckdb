@@ -269,7 +269,7 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 		}
 		// both sides have correlation
 		// turn into an inner join
-		auto join = make_unique<LogicalComparisonJoin>(JoinType::INNER);
+		auto join = make_uniq<LogicalComparisonJoin>(JoinType::INNER);
 		plan->children[0] = PushDownDependentJoinInternal(std::move(plan->children[0]), parent_propagate_null_values, join_depth);
 		auto left_binding = this->base_binding;
 		plan->children[1] = PushDownDependentJoinInternal(std::move(plan->children[1]), parent_propagate_null_values, join_depth);
@@ -366,7 +366,6 @@ unique_ptr<LogicalOperator> FlattenDependentJoins::PushDownDependentJoinInternal
 		}
 		// both sides have correlation
 		// push into both sides
-		std::cout <<"FlattenDependentJoins::PushDownDependentJoinInternal Pushing on both sides" << std::endl;
 		plan->children[0] = PushDownDependentJoinInternal(std::move(plan->children[0]), parent_propagate_null_values, join_depth);
 		auto left_binding = this->base_binding;
 		plan->children[1] = PushDownDependentJoinInternal(std::move(plan->children[1]), parent_propagate_null_values, join_depth);
