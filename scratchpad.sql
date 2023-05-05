@@ -246,15 +246,18 @@ i = 42, j = 22, l = 64
 
 No Rows
 
-SELECT * FROM (SELECT 42) t(i)
-WHERE i IN (SELECT l FROM (SELECT 42) t(l)
-            WHERE l IN (SELECT l FROM (SELECT 42 l) t4(l),
-                                       (SELECT l+5) t5(n)
-                                        WHERE i+2*l IN (SELECT k FROM (SELECT i+5),
-                                                                    (SELECT i * 2) t2(j),
-                                                                    (SELECT i + j) t3(k)
-                                                                WHERE k-l IN (SELECT i*2))
-                                        ));
+SELECT *
+FROM   (SELECT 42) t(i)
+WHERE  i IN (SELECT l
+             FROM   (SELECT 42) t(l)
+             WHERE  l IN (SELECT l
+                          FROM   (SELECT 42 l) t4(l),
+                                 (SELECT l + 5) t5(n)
+                          WHERE  i + 2 * l IN (SELECT k
+                                               FROM   (SELECT i + 5) t6(m),
+                                                      (SELECT i * 2 + m - m) t2(j),
+                                                      (SELECT i + j) t3(k)
+                                               WHERE  k - l IN (SELECT i * 2))));
 i = 42
 
 

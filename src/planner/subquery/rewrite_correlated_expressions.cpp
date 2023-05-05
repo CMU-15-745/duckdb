@@ -94,6 +94,20 @@ RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelatedRecur
     : parent(parent), base_binding(base_binding), correlated_map(correlated_map) {
 }
 
+void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteJoinRefRecursive(BoundTableRef &ref){
+	if (ref.type == TableReferenceType::JOIN) {
+		auto &bound_join = (BoundJoinRef&)ref;
+		for (auto& corr: bound_join.correlated_columns) {
+			auto entry = correlated_map.find(corr.binding);
+			if (entry != correlated_map.end()) {
+				corr.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
+			}
+		}
+		RewriteJoinRefRecursive(*bound_join.left);
+		RewriteJoinRefRecursive(*bound_join.right);
+	}
+}
+
 void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelatedSubquery(
     BoundSubqueryExpression &expr) {
 	// rewrite the binding in the correlated list of the subquery)
@@ -108,17 +122,8 @@ void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelated
 	if (node.type == QueryNodeType::SELECT_NODE) {
 		auto &bound_select = (BoundSelectNode &)node;
 		if (bound_select.from_table) {
-			BoundTableRef &table_ref = *bound_select.from_table;
-			if (table_ref.type == TableReferenceType::JOIN) {
-				auto &bound_join = (BoundJoinRef &)table_ref;
-				for (auto &corr : bound_join.correlated_columns) {
-					auto entry = correlated_map.find(corr.binding);
-					if (entry != correlated_map.end()) {
-						corr.binding =
-						    ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
-					}
-				}
-			}
+			BoundTableRef& table_ref = *bound_select.from_table;
+			RewriteJoinRefRecursive(table_ref);
 		}
 	}
 	// now rewrite any correlated BoundColumnRef expressions inside the subquery

@@ -32,7 +32,7 @@ private:
 	public:
 		RewriteCorrelatedRecursive(BoundSubqueryExpression &parent, ColumnBinding base_binding,
 		                           column_binding_map_t<idx_t> &correlated_map);
-
+		void RewriteJoinRefRecursive(BoundTableRef &ref);
 		void RewriteCorrelatedSubquery(BoundSubqueryExpression &expr);
 		void RewriteCorrelatedExpressions(Expression &child);
 
