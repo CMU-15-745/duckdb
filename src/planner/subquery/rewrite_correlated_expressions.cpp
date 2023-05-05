@@ -23,13 +23,6 @@ void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 	if (recursive_rewrite) {
 		// Update column bindings from left child of lateral to right child
 		switch (op.type) {
-		case LogicalOperatorType::LOGICAL_JOIN:
-		case LogicalOperatorType::LOGICAL_DELIM_JOIN:
-		case LogicalOperatorType::LOGICAL_COMPARISON_JOIN:
-		case LogicalOperatorType::LOGICAL_ANY_JOIN:
-		case LogicalOperatorType::LOGICAL_CROSS_PRODUCT:
-		case LogicalOperatorType::LOGICAL_POSITIONAL_JOIN:
-		case LogicalOperatorType::LOGICAL_ASOF_JOIN:
 		case LogicalOperatorType::LOGICAL_DEPENDENT_JOIN:
 			D_ASSERT(op.children.size() == 2);
 
