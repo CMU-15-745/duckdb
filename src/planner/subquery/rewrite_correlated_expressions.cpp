@@ -94,10 +94,10 @@ RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelatedRecur
     : parent(parent), base_binding(base_binding), correlated_map(correlated_map) {
 }
 
-void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteJoinRefRecursive(BoundTableRef &ref){
+void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteJoinRefRecursive(BoundTableRef &ref) {
 	if (ref.type == TableReferenceType::JOIN) {
-		auto &bound_join = (BoundJoinRef&)ref;
-		for (auto& corr: bound_join.correlated_columns) {
+		auto &bound_join = (BoundJoinRef &)ref;
+		for (auto &corr : bound_join.correlated_columns) {
 			auto entry = correlated_map.find(corr.binding);
 			if (entry != correlated_map.end()) {
 				corr.binding = ColumnBinding(base_binding.table_index, base_binding.column_index + entry->second);
@@ -122,7 +122,7 @@ void RewriteCorrelatedExpressions::RewriteCorrelatedRecursive::RewriteCorrelated
 	if (node.type == QueryNodeType::SELECT_NODE) {
 		auto &bound_select = (BoundSelectNode &)node;
 		if (bound_select.from_table) {
-			BoundTableRef& table_ref = *bound_select.from_table;
+			BoundTableRef &table_ref = *bound_select.from_table;
 			RewriteJoinRefRecursive(table_ref);
 		}
 	}
