@@ -8,6 +8,7 @@
 #include "duckdb/planner/query_node/bound_select_node.hpp"
 #include "duckdb/planner/expression_iterator.hpp"
 #include "duckdb/planner/tableref/bound_joinref.hpp"
+#include "duckdb/planner/operator/logical_dependent_join.hpp"
 
 namespace duckdb {
 
