@@ -273,3 +273,91 @@ select i
 i = 42
 
 
+select * from (select 42) t(i)
+where i in (select l from (select 42) t(l) ,
+                          (select i * 2) t2(j),
+                          (select i + j) t3(k)
+            where k in (select l*3 from (select 42 l) t4(l) where k-i = j));
+
+
+
+-- New Queries - May 4th
+
+SELECT * FROM (SELECT 42) t(i),
+              (SELECT *
+               FROM (SELECT 142) t3(y),
+                    (SELECT *
+                     FROM (SELECT 242) t4(z),
+                          (SELECT 58 WHERE i+y+z=426) t5(m)))
+WHERE z-y-m IN (SELECT l FROM (SELECT 42) t(l)
+            WHERE l IN (SELECT l FROM (SELECT 42 l) t4(l),
+                                      (SELECT l+5) t5(n)
+                        WHERE i+2*l IN (SELECT k FROM (SELECT i+5),
+                                                      (SELECT i * 2) t2(j),
+                                                      (SELECT i + j) t3(k)
+                                        WHERE k-l IN (SELECT i*2))
+            ));
+i = 42, y = 142, z = 242, m = 58
+
+
+SELECT (SELECT (SELECT k
+                FROM (SELECT i) t2(j),
+                     (SELECT j) t3(k)))
+FROM (SELECT 42) t(i)
+WHERE i IN (SELECT l FROM (SELECT 42) t(l)
+            WHERE l IN (SELECT l FROM (SELECT 42 l) t4(l),
+                                      (SELECT l+5) t5(n)
+                        WHERE i+2*l IN (SELECT k FROM (SELECT i+5),
+                                                      (SELECT i * 2) t2(j),
+                                                      (SELECT i + j) t3(k)
+                                        WHERE k-l IN (SELECT i*2))
+            ));
+? = 42
+
+
+SELECT * FROM (SELECT 42) t(i)
+WHERE i IN (SELECT l FROM (SELECT 42) t4(l)
+            WHERE l IN (SELECT l FROM (SELECT (SELECT z-y As l
+                                               FROM (SELECT x) t20(y),
+                                                    (SELECT y+x) t21(z))
+                                       FROM (SELECT 42) t22(x)),
+                                      (SELECT l+5) t5(n)
+                        WHERE i+2*l IN (SELECT k FROM (SELECT i+5),
+                                                      (SELECT i * 2) t2(j),
+                                                      (SELECT i + j) t3(k)
+                                        WHERE k-l IN (SELECT i*2))
+            ));
+i = 42
+
+
+-- Recursive CTE
+
+create view strings as (with recursive t(a) as (select 1 union select a+1 from t where a < 5) select * from t order by a);
+
+
+-- Correlated subquery inside sum, count
+select sum(a)
+from strings
+where a in (select k
+            from (select 1) t(l) ,
+                 (select 1+l) t2(j),
+                 (select a-j
+                  from strings) t3(k));
+sum(a)
+6
+
+create view strings2 as (with recursive t2(b) as (select 0 union select 10*a from strings where a < 5) select * from t2 order by b);
+
+select *
+from strings2
+where b in (select k
+            from (select 10) t(l) ,
+                 (select 10+l) t2(j),
+                 (select l+10*a
+                  from strings) t3(k))
+group by b
+having b%20 == 0
+order by b desc;
+b
+40
+20
