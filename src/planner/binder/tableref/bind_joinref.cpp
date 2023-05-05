@@ -298,12 +298,7 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 	bind_context.AddContext(std::move(left_binder.bind_context));
 	bind_context.AddContext(std::move(right_binder.bind_context));
 
-	// TODO: Do we decrement here or before bind_context above???
-
-	// MoveCorrelatedExpressions(left_binder);
-	// MoveCorrelatedExpressions(right_binder);
-
-	for (auto col : left_binder.correlated_columns) {
+	for (const auto &col : left_binder.correlated_columns) {
 		if (col.depth >= 1) {
 			AddCorrelatedColumn(col);
 		}
