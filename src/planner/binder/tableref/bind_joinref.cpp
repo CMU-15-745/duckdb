@@ -129,38 +129,19 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 	result->left = left_binder.Bind(*ref.left);
 	{
 		LateralBinder binder(left_binder, context);
-
-		auto right_str = ref.right->ToString();
-
 		result->right = right_binder.Bind(*ref.right);
-
 		bool is_lateral = false;
 		auto all_correlated_columns = vector<CorrelatedColumnInfo>();
-		// Note: Handle Left side
-		//		for(auto& cor_col: left_binder.correlated_columns) {
-		//			if (cor_col.depth >= 1) {
-		//				// This means that correlations are with columns from the parents
-		//				all_correlated_columns.push_back(cor_col);
-		//			}
-		//		}
-
 		for (auto &cor_col : right_binder.correlated_columns) {
 			if (cor_col.depth == 1) {
-				// This means that correlations are between left and right child of the join
 				is_lateral = true;
 			}
 			if (cor_col.depth >= 1) {
-				// This means that there are correlations either from the left or the parent
-				//				auto idx = std::find(all_correlated_columns.begin(), all_correlated_columns.end(),
-				// cor_col); 				if (idx == all_correlated_columns.end()) {
 				all_correlated_columns.push_back(cor_col);
-				//				}
 			}
 		}
 		result->lateral = is_lateral;
-
 		result->correlated_columns = all_correlated_columns;
-
 		if (result->lateral) {
 			// lateral join: can only be an INNER or LEFT join
 			if (ref.type != JoinType::INNER && ref.type != JoinType::LEFT) {

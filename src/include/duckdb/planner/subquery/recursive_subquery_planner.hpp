@@ -12,6 +12,8 @@
 
 namespace duckdb {
 
+class Binder;
+
 class RecursiveSubqueryPlanner : public LogicalOperatorVisitor {
 public:
 	explicit RecursiveSubqueryPlanner(Binder &binder) : binder(binder) {

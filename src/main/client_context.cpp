@@ -690,8 +690,7 @@ unique_ptr<PendingQueryResult> ClientContext::PendingStatementOrPreparedStatemen
 			break;
 		}
 	}
-	auto c = PendingStatementOrPreparedStatement(lock, query, std::move(statement), prepared, parameters);
-	return c;
+	return PendingStatementOrPreparedStatement(lock, query, std::move(statement), prepared, parameters);
 }
 
 unique_ptr<PendingQueryResult> ClientContext::PendingStatementOrPreparedStatement(

@@ -18,7 +18,7 @@ namespace duckdb {
 class RewriteCorrelatedExpressions : public LogicalOperatorVisitor {
 public:
 	RewriteCorrelatedExpressions(ColumnBinding base_binding, column_binding_map_t<idx_t> &correlated_map,
-	                             idx_t join_depth, bool recursive_rewrite = false);
+	                             idx_t lateral_depth, bool recursive_rewrite = false);
 
 	void VisitOperator(LogicalOperator &op) override;
 
@@ -44,7 +44,7 @@ private:
 private:
 	ColumnBinding base_binding;
 	column_binding_map_t<idx_t> &correlated_map;
-	idx_t join_depth;
+	idx_t lateral_depth;
 	bool recursive_rewrite;
 };
 

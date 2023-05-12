@@ -24,7 +24,6 @@
 #include "duckdb/common/serializer/format_deserializer.hpp"
 
 #include <cstring> // strlen() on Solaris
-#include <cassert>
 
 namespace duckdb {
 
@@ -71,7 +70,6 @@ Vector::Vector(Vector &&other) noexcept
 }
 
 void Vector::Reference(const Value &value) {
-	assert(GetType().id() == value.type().id());
 	D_ASSERT(GetType().id() == value.type().id());
 	this->vector_type = VectorType::CONSTANT_VECTOR;
 	buffer = VectorBuffer::CreateConstantVector(value.type());

@@ -14,8 +14,8 @@ namespace duckdb {
 
 RewriteCorrelatedExpressions::RewriteCorrelatedExpressions(ColumnBinding base_binding,
                                                            column_binding_map_t<idx_t> &correlated_map,
-                                                           idx_t join_depth, bool recursive_rewrite)
-    : base_binding(base_binding), correlated_map(correlated_map), join_depth(join_depth),
+                                                           idx_t lateral_depth, bool recursive_rewrite)
+    : base_binding(base_binding), correlated_map(correlated_map), lateral_depth(lateral_depth),
       recursive_rewrite(recursive_rewrite) {
 }
 
@@ -27,15 +27,15 @@ void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 			D_ASSERT(op.children.size() == 2);
 
 			if (op.swapped_children) {
-				join_depth++;
+				lateral_depth++;
 				VisitOperator(*op.children[0]);
-				join_depth--;
+				lateral_depth--;
 				VisitOperator(*op.children[1]);
 			} else {
 				VisitOperator(*op.children[0]);
-				join_depth++;
+				lateral_depth++;
 				VisitOperator(*op.children[1]);
-				join_depth--;
+				lateral_depth--;
 			}
 			break;
 		default:
@@ -56,14 +56,14 @@ void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 
 unique_ptr<Expression> RewriteCorrelatedExpressions::VisitReplace(BoundColumnRefExpression &expr,
                                                                   unique_ptr<Expression> *expr_ptr) {
-	if (expr.depth <= join_depth) {
+	if (expr.depth <= lateral_depth) {
 		return nullptr;
 	}
 	// correlated column reference
 	// replace with the entry referring to the duplicate eliminated scan
 	// if this assertion occurs it generally means the correlated expressions were not propagated correctly
 	// through different binders
-	D_ASSERT(expr.depth == 1 + join_depth);
+	D_ASSERT(expr.depth == 1 + lateral_depth);
 	auto entry = correlated_map.find(expr.binding);
 	D_ASSERT(entry != correlated_map.end());
 

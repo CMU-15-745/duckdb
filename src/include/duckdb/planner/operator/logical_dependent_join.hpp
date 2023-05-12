@@ -8,11 +8,6 @@
 
 #pragma once
 
-#include "duckdb/common/constants.hpp"
-#include "duckdb/common/enums/joinref_type.hpp"
-#include "duckdb/common/unordered_set.hpp"
-#include "duckdb/planner/joinside.hpp"
-#include "duckdb/planner/operator/logical_join.hpp"
 #include "duckdb/planner/binder.hpp"
 #include "duckdb/planner/operator/logical_comparison_join.hpp"
 

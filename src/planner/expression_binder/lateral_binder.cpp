@@ -31,7 +31,6 @@ BindResult LateralBinder::BindColumnRef(unique_ptr<ParsedExpression> &expr_ptr, 
 	if (result.HasError()) {
 		return result;
 	}
-
 	ExtractCorrelatedColumns(*result.expression);
 	return result;
 }

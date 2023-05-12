@@ -8,8 +8,8 @@
 namespace duckdb {
 
 HasCorrelatedExpressions::HasCorrelatedExpressions(const vector<CorrelatedColumnInfo> &correlated, bool lateral,
-                                                   idx_t join_depth)
-    : has_correlated_expressions(false), lateral(lateral), correlated_columns(correlated), join_depth(join_depth) {
+                                                   idx_t lateral_depth)
+    : has_correlated_expressions(false), lateral(lateral), correlated_columns(correlated), lateral_depth(lateral_depth) {
 }
 
 void HasCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
@@ -18,11 +18,11 @@ void HasCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 
 unique_ptr<Expression> HasCorrelatedExpressions::VisitReplace(BoundColumnRefExpression &expr,
                                                               unique_ptr<Expression> *expr_ptr) {
-	if (expr.depth <= join_depth) {
+	if (expr.depth <= lateral_depth) {
 		return nullptr;
 	}
 
-	if (expr.depth > 1 + join_depth) {
+	if (expr.depth > 1 + lateral_depth) {
 		if (lateral) {
 			throw BinderException("Nested lateral joins are not (yet) supported");
 		}
@@ -39,7 +39,7 @@ unique_ptr<Expression> HasCorrelatedExpressions::VisitReplace(BoundColumnRefExpr
 		}
 	}
 	// correlated column reference
-	D_ASSERT(expr.depth == join_depth + 1);
+	D_ASSERT(expr.depth == lateral_depth + 1);
 	has_correlated_expressions = found_match;
 	return nullptr;
 }

@@ -328,8 +328,7 @@ private:
 	unique_ptr<LogicalOperator> PlanLateralJoin(unique_ptr<LogicalOperator> left, unique_ptr<LogicalOperator> right,
 	                                            vector<CorrelatedColumnInfo> &correlated_columns,
 	                                            JoinType join_type = JoinType::INNER,
-	                                            unique_ptr<Expression> condition = nullptr,
-	                                            vector<JoinCondition> = vector<JoinCondition>());
+	                                            unique_ptr<Expression> condition = nullptr);
 
 	unique_ptr<LogicalOperator> CastLogicalOperatorToTypes(vector<LogicalType> &source_types,
 	                                                       vector<LogicalType> &target_types,
