@@ -265,7 +265,8 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 			return LogicalDependentJoin::Create(std::move(left), std::move(right), ref.correlated_columns, ref.type,
 			                                    std::move(ref.condition));
 		} else {
-			auto res = PlanLateralJoin(std::move(left), std::move(right), ref.correlated_columns, ref.type, std::move(ref.condition));
+			auto res = PlanLateralJoin(std::move(left), std::move(right), ref.correlated_columns, ref.type,
+			                           std::move(ref.condition));
 			if (has_unplanned_subqueries) {
 				RecursiveSubqueryPlanner plan(*this);
 				plan.VisitOperator(*res);
