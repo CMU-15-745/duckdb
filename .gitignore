@@ -289,9 +289,6 @@ cmake_build
 .cmake_build
 cmake-build-debug
 cmake-build-release
-CMakeFiles
-Makefile
-test
 
 # Generated documentation
 docs
