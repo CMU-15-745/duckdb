@@ -232,14 +232,18 @@ unique_ptr<LogicalOperator> LogicalComparisonJoin::CreateJoin(JoinType type, Joi
 
 unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 	bool swapped_children = false;
-	auto old_plan_subquery = plan_subquery;
+	auto old_is_outside_flattened = is_outside_flattened;
+	// Plan laterals from outermost to innermost
 	if (ref.lateral) {
-		plan_subquery = false;
+		is_outside_flattened = false;
 	}
 	auto left = CreatePlan(*ref.left);
 	auto right = CreatePlan(*ref.right);
-	plan_subquery = old_plan_subquery;
+	is_outside_flattened = old_is_outside_flattened;
 
+	// For joins, depth of the bindings will be one higher on the right because of the lateral binder
+	// If the current join does not have correlations between left and right,
+	// then the right bindings have depth 1 too high
 	if (!ref.lateral && !ref.correlated_columns.empty()) {
 		// non-lateral join with correlated columns
 		// this happens if there is a join (or cross product) in a correlated subquery
@@ -259,16 +263,17 @@ unique_ptr<LogicalOperator> Binder::CreatePlan(BoundJoinRef &ref) {
 	}
 	if (ref.lateral) {
 		D_ASSERT(swapped_children == false);
-		// lateral join
-		if (!plan_subquery) {
-			has_unplanned_subqueries = true;
+		if (!is_outside_flattened) {
+			// If outer dependent joins is yet to be flattened, only plan the lateral
+			has_unplanned_dependent_joins = true;
 			return LogicalDependentJoin::Create(std::move(left), std::move(right), ref.correlated_columns, ref.type,
 			                                    std::move(ref.condition));
 		} else {
+			// All outer dependent joins have been planned and flattened, so plan and flatten lateral and recursively plan the children
 			auto res = PlanLateralJoin(std::move(left), std::move(right), ref.correlated_columns, ref.type,
 			                           std::move(ref.condition));
-			if (has_unplanned_subqueries) {
-				RecursiveSubqueryPlanner plan(*this);
+			if (has_unplanned_dependent_joins) {
+				RecursiveDependentJoinPlanner plan(*this);
 				plan.VisitOperator(*res);
 			}
 			return res;

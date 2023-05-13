@@ -132,16 +132,18 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 		result->right = right_binder.Bind(*ref.right);
 		bool is_lateral = false;
 		auto all_correlated_columns = vector<CorrelatedColumnInfo>();
-		for (auto &cor_col : right_binder.correlated_columns) {
+		// Store the correlated columns in the right binder in bound ref for planning of LATERALs
+		// Ignore the correlated columns in the left binder, flattening handles those correlations
+		result->correlated_columns = right_binder.correlated_columns;
+		// Find correlations for the current join
+		for (auto &cor_col : result->correlated_columns) {
 			if (cor_col.depth == 1) {
+				// Depth 1 indicates columns binding from the left indicating a lateral join
 				is_lateral = true;
-			}
-			if (cor_col.depth >= 1) {
-				all_correlated_columns.push_back(cor_col);
+				break;
 			}
 		}
 		result->lateral = is_lateral;
-		result->correlated_columns = all_correlated_columns;
 		if (result->lateral) {
 			// lateral join: can only be an INNER or LEFT join
 			if (ref.type != JoinType::INNER && ref.type != JoinType::LEFT) {
@@ -279,14 +281,18 @@ unique_ptr<BoundTableRef> Binder::Bind(JoinRef &ref) {
 	bind_context.AddContext(std::move(left_binder.bind_context));
 	bind_context.AddContext(std::move(right_binder.bind_context));
 
+	// Update the correlated columns for the parent binder
+	// For the left binder, depth >= 1 indicates correlations from the parent binder
 	for (const auto &col : left_binder.correlated_columns) {
 		if (col.depth >= 1) {
 			AddCorrelatedColumn(col);
 		}
 	}
-
+	// For the right binder, depth > 1 indicates correlations from the parent binder
+	// (depth = 1 indicates correlations from the left side of the join)
 	for (auto col : right_binder.correlated_columns) {
 		if (col.depth > 1) {
+			// Decrement the depth to account for the effect of the lateral binder
 			col.depth--;
 			AddCorrelatedColumn(col);
 		}

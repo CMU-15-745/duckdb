@@ -331,11 +331,12 @@ static unique_ptr<Expression> PlanCorrelatedSubquery(Binder &binder, BoundSubque
 	}
 }
 
-void RecursiveSubqueryPlanner::VisitOperator(LogicalOperator &op) {
+void RecursiveDependentJoinPlanner::VisitOperator(LogicalOperator &op) {
 	if (!op.children.empty()) {
 		root = std::move(op.children[0]);
 		D_ASSERT(root);
 		if (root->type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
+			// Found a dependent join, flatten it
 			auto &new_root = (LogicalDependentJoin &)*root;
 			root = binder.PlanLateralJoin(std::move(new_root.children[0]), std::move(new_root.children[1]),
 			                              new_root.correlated_columns, new_root.join_type,
@@ -350,7 +351,7 @@ void RecursiveSubqueryPlanner::VisitOperator(LogicalOperator &op) {
 	}
 }
 
-unique_ptr<Expression> RecursiveSubqueryPlanner::VisitReplace(BoundSubqueryExpression &expr,
+unique_ptr<Expression> RecursiveDependentJoinPlanner::VisitReplace(BoundSubqueryExpression &expr,
                                                               unique_ptr<Expression> *expr_ptr) {
 	return binder.PlanSubquery(expr, root);
 }
@@ -360,7 +361,7 @@ unique_ptr<Expression> Binder::PlanSubquery(BoundSubqueryExpression &expr, uniqu
 	// first we translate the QueryNode of the subquery into a logical plan
 	// note that we do not plan nested subqueries yet
 	auto sub_binder = Binder::CreateBinder(context, this);
-	sub_binder->plan_subquery = false;
+	sub_binder->is_outside_flattened = false;
 	auto subquery_root = sub_binder->CreatePlan(*expr.subquery);
 	D_ASSERT(subquery_root);
 
@@ -374,8 +375,8 @@ unique_ptr<Expression> Binder::PlanSubquery(BoundSubqueryExpression &expr, uniqu
 		result_expression = PlanCorrelatedSubquery(*this, expr, root, std::move(plan));
 	}
 	// finally, we recursively plan the nested subqueries (if there are any)
-	if (sub_binder->has_unplanned_subqueries) {
-		RecursiveSubqueryPlanner plan(*this);
+	if (sub_binder->has_unplanned_dependent_joins) {
+		RecursiveDependentJoinPlanner plan(*this);
 		plan.VisitOperator(*root);
 	}
 	return result_expression;
@@ -393,11 +394,11 @@ void Binder::PlanSubqueries(unique_ptr<Expression> &expr_ptr, unique_ptr<Logical
 	if (expr.expression_class == ExpressionClass::BOUND_SUBQUERY) {
 		auto &subquery = expr.Cast<BoundSubqueryExpression>();
 		// subquery node! plan it
-		if (subquery.IsCorrelated() && !plan_subquery) {
+		if (subquery.IsCorrelated() && !is_outside_flattened) {
 			// detected a nested correlated subquery
 			// we don't plan it yet here, we are currently planning a subquery
 			// nested subqueries will only be planned AFTER the current subquery has been flattened entirely
-			has_unplanned_subqueries = true;
+			has_unplanned_dependent_joins = true;
 			return;
 		}
 		expr_ptr = PlanSubquery(subquery, root);
@@ -408,7 +409,7 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
                                                     vector<CorrelatedColumnInfo> &correlated_columns,
                                                     JoinType join_type, unique_ptr<Expression> condition) {
 	// scan the right operator for correlated columns
-	// correlated LATERAL JOIN
+// correlated LATERAL JOIN
 	vector<JoinCondition> conditions;
 	vector<unique_ptr<Expression>> arbitrary_expressions;
 	if (condition) {

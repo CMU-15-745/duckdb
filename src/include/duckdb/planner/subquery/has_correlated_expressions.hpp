@@ -29,6 +29,7 @@ protected:
 	unique_ptr<Expression> VisitReplace(BoundSubqueryExpression &expr, unique_ptr<Expression> *expr_ptr) override;
 
 	const vector<CorrelatedColumnInfo> &correlated_columns;
+	// Tracks number of nested laterals
 	idx_t lateral_depth;
 };
 

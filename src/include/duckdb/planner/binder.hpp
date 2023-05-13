@@ -76,7 +76,7 @@ struct CorrelatedColumnInfo {
 */
 class Binder : public std::enable_shared_from_this<Binder> {
 	friend class ExpressionBinder;
-	friend class RecursiveSubqueryPlanner;
+	friend class RecursiveDependentJoinPlanner;
 
 public:
 	DUCKDB_API static shared_ptr<Binder> CreateBinder(ClientContext &context, optional_ptr<Binder> parent = nullptr,
@@ -200,10 +200,10 @@ private:
 	vector<reference<ExpressionBinder>> active_binders;
 	//! The count of bound_tables
 	idx_t bound_tables;
-	//! Whether or not the binder has any unplanned subqueries that still need to be planned
-	bool has_unplanned_subqueries = false;
-	//! Whether or not subqueries should be planned already
-	bool plan_subquery = true;
+	//! Whether or not the binder has any unplanned dependent joins that still need to be planned/flattened
+	bool has_unplanned_dependent_joins = false;
+	//! Whether or not outside dependent joins have been planned and flattened
+	bool is_outside_flattened = true;
 	//! Whether CTEs should reference the parent binder (if it exists)
 	bool inherit_ctes = true;
 	//! Whether or not the binder can contain NULLs as the root of expressions

@@ -14,9 +14,12 @@ namespace duckdb {
 
 class Binder;
 
-class RecursiveSubqueryPlanner : public LogicalOperatorVisitor {
+/*
+ * Recursively plan subqueries and flatten dependent joins from outermost to innermost (like peeling an onion).
+ */
+class RecursiveDependentJoinPlanner : public LogicalOperatorVisitor {
 public:
-	explicit RecursiveSubqueryPlanner(Binder &binder) : binder(binder) {
+	explicit RecursiveDependentJoinPlanner(Binder &binder) : binder(binder) {
 	}
 	void VisitOperator(LogicalOperator &op) override;
 	unique_ptr<Expression> VisitReplace(BoundSubqueryExpression &expr, unique_ptr<Expression> *expr_ptr) override;
