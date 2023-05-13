@@ -210,6 +210,22 @@ WHERE i IN (SELECT l FROM (SELECT 42) t4(l)
 ----
 42
 
+query I
+SELECT (SELECT res.*
+        FROM (SELECT 1) AS t2(z),
+                   (SELECT (SELECT i
+                          FROM (SELECT MAX(k) FROM generate_series(1,10) t(k)) AS t(i)
+                          GROUP BY i
+                          HAVING (COUNT(*)) =
+                                 ((SELECT x)))) res)
+FROM generate_series(1, 5) t(x);
+----
+10
+NULL
+NULL
+NULL
+NULL
+
 statement ok
 create view strings as (with recursive t(a) as (select 1 union select a+1 from t where a < 5) select * from t order by a);
 
