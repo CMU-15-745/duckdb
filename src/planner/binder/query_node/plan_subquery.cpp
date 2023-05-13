@@ -352,7 +352,7 @@ void RecursiveDependentJoinPlanner::VisitOperator(LogicalOperator &op) {
 }
 
 unique_ptr<Expression> RecursiveDependentJoinPlanner::VisitReplace(BoundSubqueryExpression &expr,
-                                                              unique_ptr<Expression> *expr_ptr) {
+                                                                   unique_ptr<Expression> *expr_ptr) {
 	return binder.PlanSubquery(expr, root);
 }
 
@@ -409,7 +409,7 @@ unique_ptr<LogicalOperator> Binder::PlanLateralJoin(unique_ptr<LogicalOperator> 
                                                     vector<CorrelatedColumnInfo> &correlated_columns,
                                                     JoinType join_type, unique_ptr<Expression> condition) {
 	// scan the right operator for correlated columns
-// correlated LATERAL JOIN
+	// correlated LATERAL JOIN
 	vector<JoinCondition> conditions;
 	vector<unique_ptr<Expression>> arbitrary_expressions;
 	if (condition) {

@@ -94,7 +94,10 @@ protected:
 			ReduceColumnRefDepth(expr.Cast<BoundColumnRefExpression>());
 		}
 		if (expr.GetExpressionClass() == ExpressionClass::BOUND_SUBQUERY) {
+			auto &subquery_ref = (BoundSubqueryExpression &)expr;
 			ReduceExpressionSubquery(expr.Cast<BoundSubqueryExpression>());
+			ExpressionIterator::EnumerateQueryNodeChildren(
+			    *subquery_ref.subquery, [&](Expression &child_expr) { ReduceExpressionDepth(child_expr); });
 		}
 	}
 
