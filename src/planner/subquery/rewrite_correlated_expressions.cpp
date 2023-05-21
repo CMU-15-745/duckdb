@@ -22,28 +22,18 @@ RewriteCorrelatedExpressions::RewriteCorrelatedExpressions(ColumnBinding base_bi
 void RewriteCorrelatedExpressions::VisitOperator(LogicalOperator &op) {
 	if (recursive_rewrite) {
 		// Update column bindings from left child of lateral to right child
-		switch (op.type) {
-		case LogicalOperatorType::LOGICAL_DEPENDENT_JOIN:
+		if (op.type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
 			D_ASSERT(op.children.size() == 2);
-
-			if (op.swapped_children) {
-				lateral_depth++;
-				VisitOperator(*op.children[0]);
-				lateral_depth--;
-				VisitOperator(*op.children[1]);
-			} else {
-				VisitOperator(*op.children[0]);
-				lateral_depth++;
-				VisitOperator(*op.children[1]);
-				lateral_depth--;
-			}
-			break;
-		default:
+			VisitOperator(*op.children[0]);
+			lateral_depth++;
+			VisitOperator(*op.children[1]);
+			lateral_depth--;
+		} else {
 			VisitOperatorChildren(op);
 		}
 	}
 	if (op.type == LogicalOperatorType::LOGICAL_DEPENDENT_JOIN) {
-		auto &plan = (LogicalDependentJoin &)op;
+		auto &plan = op.Cast<LogicalDependentJoin>();
 		for (auto &corr : plan.correlated_columns) {
 			auto entry = correlated_map.find(corr.binding);
 			if (entry != correlated_map.end()) {
