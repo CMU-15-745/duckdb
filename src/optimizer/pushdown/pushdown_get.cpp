@@ -4,6 +4,7 @@
 #include "duckdb/planner/expression/bound_parameter_expression.hpp"
 #include "duckdb/planner/operator/logical_filter.hpp"
 #include "duckdb/planner/operator/logical_get.hpp"
+#include <iostream>
 
 namespace duckdb {
 

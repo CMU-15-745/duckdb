@@ -4,6 +4,7 @@
 #include "duckdb/planner/operator/logical_any_join.hpp"
 #include "duckdb/planner/operator/logical_create_index.hpp"
 #include "duckdb/planner/operator/logical_insert.hpp"
+#include "duckdb/planner/operator/logical_get.hpp"
 #include "duckdb/planner/operator/logical_extension_operator.hpp"
 
 #include "duckdb/planner/expression/bound_columnref_expression.hpp"
@@ -68,6 +69,11 @@ void ColumnBindingResolver::VisitOperator(LogicalOperator &op) {
 		//! We first need to update the current set of bindings and then visit operator expressions
 		bindings = op.GetColumnBindings();
 		VisitOperatorExpressions(op);
+		auto& logical_get = op.Cast<LogicalGet>();
+		auto& tf = logical_get.table_filters;
+		if (tf.complex_filter) {
+			VisitExpression(&tf.complex_filter);
+		}
 		return;
 	}
 	case LogicalOperatorType::LOGICAL_INSERT: {

@@ -11,6 +11,9 @@
 #include "duckdb/parallel/thread_context.hpp"
 #include "duckdb/storage/buffer_manager.hpp"
 
+
+bool disable_caching = true;
+
 namespace duckdb {
 
 string PhysicalOperator::GetName() const {
@@ -252,6 +255,9 @@ OperatorResultType CachingPhysicalOperator::Execute(ExecutionContext &context, D
 
 	// Execute child operator
 	auto child_result = ExecuteInternal(context, input, chunk, gstate, state);
+	if (disable_caching) {
+		return child_result;
+	}
 
 #if STANDARD_VECTOR_SIZE >= 128
 	if (!state.initialized) {

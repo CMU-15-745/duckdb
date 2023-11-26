@@ -20,6 +20,7 @@ add_library_unity(
   filter_combiner.cpp
   filter_pushdown.cpp
   filter_pullup.cpp
+  heuristic_operator_fusion.cpp
   in_clause_rewriter.cpp
   optimizer.cpp
   expression_rewriter.cpp

@@ -14,6 +14,7 @@
 #include "duckdb/planner/filter/constant_filter.hpp"
 #include "duckdb/planner/filter/null_filter.hpp"
 #include "duckdb/optimizer/optimizer.hpp"
+#include <iostream>
 
 namespace duckdb {
 
@@ -391,8 +392,19 @@ bool FilterCombiner::HasFilters() {
 // 	return zonemap_checks;
 // }
 
+unique_ptr<Expression> FilterCombiner::VisitReplace(BoundColumnRefExpression &ref,
+																										unique_ptr<Expression> *expr_ptr) {
+	referenced_col_ids.insert(ref.binding.column_index);
+	return std::move(*expr_ptr);
+}
+
 TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_ids) {
-	TableFilterSet table_filters;
+	TableFilterSet table_filters(column_ids.size());
+	auto combined_filter = make_uniq<BoundConjunctionExpression>(ExpressionType::CONJUNCTION_AND);
+	// TODO: Improve filter combiner to support more types of comparisions
+	// TODO: Ask why there is not null check in the filter pushdown
+
+	referenced_col_ids.clear();
 	//! First, we figure the filters that have constant expressions that we can push down to the table scan
 	for (auto &constant_value : constant_values) {
 		if (!constant_value.second.empty()) {
@@ -407,6 +419,8 @@ TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_id
 			     constant_value.second[0].constant.type().InternalType() == PhysicalType::BOOL)) {
 				//! Here we check if these filters are column references
 				filter_exp = equivalence_map.find(constant_value.first);
+
+				// To handle single column comparisons
 				if (filter_exp->second.size() == 1 &&
 				    filter_exp->second[0].get().type == ExpressionType::BOUND_COLUMN_REF) {
 					auto &filter_col_exp = filter_exp->second[0].get().Cast<BoundColumnRefExpression>();
@@ -421,6 +435,7 @@ TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_id
 					for (idx_t i = 0; i < entries.size(); i++) {
 						// for each entry also create a comparison with each constant
 						for (idx_t k = 0; k < constant_list.size(); k++) {
+							std::cout << "Optimizer::SimpleFilterFusion:" << filter_col_exp.ToString() << " " << ExpressionTypeToString(constant_value.second[k].comparison_type) << " " << constant_value.second[k].constant.ToString() << std::endl;
 							auto constant_filter = make_uniq<ConstantFilter>(constant_value.second[k].comparison_type,
 							                                                 constant_value.second[k].constant);
 							table_filters.PushFilter(column_index, std::move(constant_filter));
@@ -429,9 +444,37 @@ TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_id
 					}
 					equivalence_map.erase(filter_exp);
 				}
+				else if (filter_exp->second.size() == 1) {
+					// TODO: This might not work for all filters expressions so conditionally execute this code
+					auto equivalence_set = filter_exp->first;
+					auto &constant_list = constant_values.find(equivalence_set)->second;
+					auto expr = filter_exp->second[0].get().Copy();
+					VisitExpression(&expr);
+					for (idx_t k = 0; k < constant_list.size(); k++) {
+						auto rhs = make_uniq<BoundConstantExpression>(constant_value.second[k].constant)->Copy();
+						combined_filter->children.push_back(make_uniq<BoundComparisonExpression>(constant_value.second[k].comparison_type, expr->Copy(), std::move(rhs)));
+					}
+					equivalence_map.erase(filter_exp);
+				}
 			}
 		}
 	}
+	auto no_complex_filters = combined_filter->children.size();
+	if (no_complex_filters > 1) {
+		table_filters.complex_filter = std::move(combined_filter);
+	} else if (no_complex_filters == 1) {
+		table_filters.complex_filter = std::move(combined_filter->children[0]);
+	}
+	if(table_filters.complex_filter) {
+		std::cout << "Optimizer:ComplexFilterFusion:" << table_filters.complex_filter->ToString() << std::endl;
+	}
+
+	vector<idx_t> converted_ids;
+	for(auto col_id: referenced_col_ids) {
+		converted_ids.push_back(col_id);
+	}
+	table_filters.SetColumnsIds(converted_ids);
+
 	//! Here we look for LIKE or IN filters
 	for (idx_t rem_fil_idx = 0; rem_fil_idx < remaining_filters.size(); rem_fil_idx++) {
 		auto &remaining_filter = remaining_filters[rem_fil_idx];

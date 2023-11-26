@@ -4,6 +4,10 @@
 #include "duckdb/planner/operator/logical_filter.hpp"
 #include "duckdb/planner/operator/logical_join.hpp"
 #include "duckdb/optimizer/optimizer.hpp"
+#include <iostream>
+
+bool disable_filter_pushdown = false;
+bool disable_filter_pushdown_get = true;
 
 namespace duckdb {
 
@@ -13,6 +17,18 @@ FilterPushdown::FilterPushdown(Optimizer &optimizer) : optimizer(optimizer), com
 }
 
 unique_ptr<LogicalOperator> FilterPushdown::Rewrite(unique_ptr<LogicalOperator> op) {
+	if (disable_filter_pushdown) {
+		std::cout << "Optimizer:FilterPushDown:disabled\n";
+		return std::move(op);
+	} else {
+		std::cout << "Optimizer:FilterPushDown:enabled\n";
+	}
+	if (disable_filter_pushdown_get) {
+		std::cout << "Optimizer:FilterFusion:disabled\n";
+	} else {
+		std::cout << "Optimizer:FilterFusion:enabled\n";
+	}
+
 	D_ASSERT(!combiner.HasFilters());
 	switch (op->type) {
 	case LogicalOperatorType::LOGICAL_AGGREGATE_AND_GROUP_BY:
@@ -39,8 +55,13 @@ unique_ptr<LogicalOperator> FilterPushdown::Rewrite(unique_ptr<LogicalOperator> 
 		op->children[0] = Rewrite(std::move(op->children[0]));
 		return op;
 	}
-	case LogicalOperatorType::LOGICAL_GET:
-		return PushdownGet(std::move(op));
+	case LogicalOperatorType::LOGICAL_GET: {
+		if (disable_filter_pushdown_get) {
+			return FinishPushdown(std::move(op));
+		} else {
+			return PushdownGet(std::move(op));
+		}
+	}
 	case LogicalOperatorType::LOGICAL_LIMIT:
 		return PushdownLimit(std::move(op));
 	default:

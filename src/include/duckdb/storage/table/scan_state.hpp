@@ -129,6 +129,8 @@ public:
 	//! The current batch index
 	idx_t batch_index;
 
+	DataChunk cached_data;
+
 public:
 	void Initialize(const vector<LogicalType> &types);
 	const vector<storage_t> &GetColumnIds();

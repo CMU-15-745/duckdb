@@ -8,10 +8,13 @@
 
 #pragma once
 
+#include <algorithm>
+
 #include "duckdb/common/common.hpp"
 #include "duckdb/common/types.hpp"
 #include "duckdb/common/unordered_map.hpp"
 #include "duckdb/common/enums/filter_propagate_result.hpp"
+#include "duckdb/planner/expression.hpp"
 
 namespace duckdb {
 class BaseStatistics;
@@ -66,8 +69,19 @@ public:
 class TableFilterSet {
 public:
 	unordered_map<idx_t, unique_ptr<TableFilter>> filters;
+	unique_ptr<Expression> complex_filter;
+	vector<bool> used_col_ids;
 
 public:
+	TableFilterSet(): complex_filter(nullptr) { }
+	TableFilterSet(int no_cols): complex_filter(nullptr) { used_col_ids.resize(no_cols); }
+	void SetColumnsIds(vector<idx_t> col_ids) {
+		for(auto col_id: col_ids) {
+			D_ASSERT(used_col_ids.size() > col_id);
+			used_col_ids[col_id] = true;
+		}
+	}
+
 	void PushFilter(idx_t table_index, unique_ptr<TableFilter> filter);
 
 	bool Equals(TableFilterSet &other) {

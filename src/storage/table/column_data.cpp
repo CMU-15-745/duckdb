@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "duckdb/storage/table/column_data.hpp"
 
 #include "duckdb/common/vector_operations/vector_operations.hpp"
