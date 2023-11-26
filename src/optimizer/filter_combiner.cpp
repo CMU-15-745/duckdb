@@ -14,6 +14,7 @@
 #include "duckdb/planner/filter/constant_filter.hpp"
 #include "duckdb/planner/filter/null_filter.hpp"
 #include "duckdb/optimizer/optimizer.hpp"
+#include <iostream>
 
 namespace duckdb {
 
@@ -393,7 +394,9 @@ bool FilterCombiner::HasFilters() {
 
 TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_ids) {
 	TableFilterSet table_filters;
+
 	//! First, we figure the filters that have constant expressions that we can push down to the table scan
+	BoundConjunctionExpression combined_filter(ExpressionType::CONJUNCTION_AND);
 	for (auto &constant_value : constant_values) {
 		if (!constant_value.second.empty()) {
 			auto filter_exp = equivalence_map.end();
@@ -407,8 +410,17 @@ TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_id
 			     constant_value.second[0].constant.type().InternalType() == PhysicalType::BOOL)) {
 				//! Here we check if these filters are column references
 				filter_exp = equivalence_map.find(constant_value.first);
+				std::cout << "Constant value is " << constant_value.second[0].constant.ToString() << std::endl;
+				std::cout << "Filters are " << std::endl;
+				for(auto& f: filter_exp->second) {
+					auto& k = f.get();
+					std::cout << f.get().ToString() << " " << ExpressionTypeToString(f.get().type) << std::endl;
+				}
+
+				// To handle single column comparisons
 				if (filter_exp->second.size() == 1 &&
 				    filter_exp->second[0].get().type == ExpressionType::BOUND_COLUMN_REF) {
+					std::cout << "Filter is single column ref" << std::endl;
 					auto &filter_col_exp = filter_exp->second[0].get().Cast<BoundColumnRefExpression>();
 					auto column_index = column_ids[filter_col_exp.binding.column_index];
 					if (column_index == COLUMN_IDENTIFIER_ROW_ID) {
@@ -428,6 +440,15 @@ TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_id
 						table_filters.PushFilter(column_index, make_uniq<IsNotNullFilter>());
 					}
 					equivalence_map.erase(filter_exp);
+				} else if (filter_exp->second.size() == 1) {
+					// TODO: This might not work for all filters expressions so conditionally execute this code
+					auto equivalence_set = filter_exp->first;
+					auto &constant_list = constant_values.find(equivalence_set)->second;
+					for (idx_t k = 0; k < constant_list.size(); k++) {
+						auto rhs = make_unique<BoundConstantExpression>(constant_value.second[k].constant)->Copy();
+						auto lhs = filter_exp->second[0].get().Copy();
+						combined_filter.children.push_back(make_unique<BoundComparisonExpression>(constant_value.second[k].comparison_type, std::move(lhs), std::move(rhs)));
+					}
 				}
 			}
 		}

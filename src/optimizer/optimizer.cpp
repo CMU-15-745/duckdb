@@ -23,6 +23,7 @@
 #include "duckdb/optimizer/statistics_propagator.hpp"
 #include "duckdb/optimizer/topn_optimizer.hpp"
 #include "duckdb/optimizer/unnest_rewriter.hpp"
+#include "duckdb/optimizer/heuristic_operator_fusion.hpp"
 #include "duckdb/planner/binder.hpp"
 #include "duckdb/planner/planner.hpp"
 
@@ -90,6 +91,11 @@ unique_ptr<LogicalOperator> Optimizer::Optimize(unique_ptr<LogicalOperator> plan
 	// first we perform expression rewrites using the ExpressionRewriter
 	// this does not change the logical plan structure, but only simplifies the expression trees
 	RunOptimizer(OptimizerType::EXPRESSION_REWRITER, [&]() { rewriter.VisitOperator(*plan); });
+
+	RunOptimizer(OptimizerType::HEURISTIC_OPERATOR_FUSION, [&]() {
+		HeuristicOperatorFusion rewriter;
+		plan = rewriter.Rewrite(plan);
+	});
 
 	// perform filter pullup
 	RunOptimizer(OptimizerType::FILTER_PULLUP, [&]() {
@@ -192,6 +198,11 @@ unique_ptr<LogicalOperator> Optimizer::Optimize(unique_ptr<LogicalOperator> plan
 	RunOptimizer(OptimizerType::REORDER_FILTER, [&]() {
 		ExpressionHeuristics expression_heuristics(*this);
 		plan = expression_heuristics.Rewrite(std::move(plan));
+	});
+
+	RunOptimizer(OptimizerType::HEURISTIC_OPERATOR_FUSION, [&]() {
+		HeuristicOperatorFusion rewriter;
+		plan = rewriter.Rewrite(plan);
 	});
 
 	for (auto &optimizer_extension : DBConfig::GetConfig(context).optimizer_extensions) {

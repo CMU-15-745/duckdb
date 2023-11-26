@@ -28,6 +28,7 @@ static DefaultOptimizerType internal_optimizer_types[] = {
     {"compressed_materialization", OptimizerType::COMPRESSED_MATERIALIZATION},
     {"duplicate_groups", OptimizerType::DUPLICATE_GROUPS},
     {"reorder_filter", OptimizerType::REORDER_FILTER},
+    {"heuristic_operator_fusion", OptimizerType::HEURISTIC_OPERATOR_FUSION},
     {"extension", OptimizerType::EXTENSION},
     {nullptr, OptimizerType::INVALID}};
 

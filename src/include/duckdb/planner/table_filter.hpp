@@ -8,10 +8,14 @@
 
 #pragma once
 
+#include <algorithm>
+#include <vector>
+
 #include "duckdb/common/common.hpp"
 #include "duckdb/common/types.hpp"
 #include "duckdb/common/unordered_map.hpp"
 #include "duckdb/common/enums/filter_propagate_result.hpp"
+#include "duckdb/planner/expression/bound_conjunction_expression.hpp"
 
 namespace duckdb {
 class BaseStatistics;
@@ -66,8 +70,20 @@ public:
 class TableFilterSet {
 public:
 	unordered_map<idx_t, unique_ptr<TableFilter>> filters;
+	BoundConjunctionExpression complex_filter;
+	std::vector<bool> used_col_ids;
 
 public:
+	TableFilterSet(): complex_filter(ExpressionType::CONJUNCTION_AND) { }
+	void SetColumnsIds(std::vector<idx_t>& col_ids) {
+		auto max_element_it = std::max_element(col_ids.begin(), col_ids.end());
+		if (max_element_it == col_ids.end()) {
+			used_col_ids.resize(0);
+		} else {
+			used_col_ids.resize(*max_element_it + 1);
+		}
+	}
+
 	void PushFilter(idx_t table_index, unique_ptr<TableFilter> filter);
 
 	bool Equals(TableFilterSet &other) {

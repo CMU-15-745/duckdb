@@ -4,6 +4,7 @@
 #include "duckdb/planner/operator/logical_filter.hpp"
 #include "duckdb/planner/operator/logical_join.hpp"
 #include "duckdb/optimizer/optimizer.hpp"
+#include <iostream>
 
 namespace duckdb {
 
@@ -13,6 +14,12 @@ FilterPushdown::FilterPushdown(Optimizer &optimizer) : optimizer(optimizer), com
 }
 
 unique_ptr<LogicalOperator> FilterPushdown::Rewrite(unique_ptr<LogicalOperator> op) {
+	std::cout << "FilterPushdown called on " << op->ToString() << std::endl;
+	std::cout << "Current set of filters being pushed down are : " << std::endl;
+	for(auto& f: filters) {
+		std::cout << f->filter->ToString() << std::endl;
+	}
+
 	D_ASSERT(!combiner.HasFilters());
 	switch (op->type) {
 	case LogicalOperatorType::LOGICAL_AGGREGATE_AND_GROUP_BY:
