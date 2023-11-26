@@ -20,6 +20,8 @@
 #include "duckdb/common/serializer/serializer.hpp"
 #include "duckdb/common/serializer/deserializer.hpp"
 #include "duckdb/common/serializer/binary_serializer.hpp"
+#include "duckdb/execution/operator/filter/physical_filter.hpp"
+#include <iostream>
 
 namespace duckdb {
 
@@ -455,6 +457,7 @@ void RowGroup::TemplatedScan(TransactionData transaction, CollectionScanState &s
 			//! first, we scan the columns with filters, fetch their data and generate a selection vector.
 			//! get runtime statistics
 			auto start_time = high_resolution_clock::now();
+			// TODO: Either simple filters or complex filters or both
 			if (table_filters) {
 				D_ASSERT(adaptive_filter);
 				D_ASSERT(ALLOW_UPDATES);
@@ -467,6 +470,11 @@ void RowGroup::TemplatedScan(TransactionData transaction, CollectionScanState &s
 				}
 				for (auto &table_filter : table_filters->filters) {
 					result.data[table_filter.first].Slice(sel, approved_tuple_count);
+				}
+				if (!table_filters->complex_filter) {
+					std::cout << "In row group scan, no complex expressions\n" << result.ToString() << std::endl;
+				} else {
+					std::cout << "In row group scan, complex expressions is " << table_filters->complex_filter->ToString() << "\n" << result.ToString() << std::endl;
 				}
 			}
 			if (approved_tuple_count == 0) {
@@ -510,6 +518,21 @@ void RowGroup::TemplatedScan(TransactionData transaction, CollectionScanState &s
 					}
 				}
 			}
+			result.SetCardinality(approved_tuple_count);
+			if (table_filters->complex_filter) {
+				std::cout << "complex filter starting now : " << table_filters->complex_filter->ToString() << std::endl;
+				auto& c = transaction.transaction->context;
+				if (auto tmp = c.lock()) {
+					std::cout << "Creating executor" << std::endl;
+					ExpressionExecutor executor(*tmp, table_filters->complex_filter.get());
+					SelectionVector sel(STANDARD_VECTOR_SIZE);
+					std::cout << "BeforeExecution Data \n" << result.ToString() << "\n" << sel.ToString(approved_tuple_count) << std::endl;
+					executor.SelectExpression(result, sel);
+					std::cout << "AfterExecution Data \n" << result.ToString() << "\n" << sel.ToString(approved_tuple_count) << std::endl;
+					std::cout << "complex filter completed now : " << table_filters->complex_filter->ToString() << std::endl;
+				}
+			}
+
 			auto end_time = high_resolution_clock::now();
 			if (adaptive_filter && table_filters->filters.size() > 1) {
 				adaptive_filter->AdaptRuntimeStatistics(duration_cast<duration<double>>(end_time - start_time).count());

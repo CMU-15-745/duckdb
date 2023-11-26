@@ -394,9 +394,9 @@ bool FilterCombiner::HasFilters() {
 
 TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_ids) {
 	TableFilterSet table_filters;
+	auto combined_filter = make_uniq<BoundConjunctionExpression>(ExpressionType::CONJUNCTION_AND);
 
 	//! First, we figure the filters that have constant expressions that we can push down to the table scan
-	BoundConjunctionExpression combined_filter(ExpressionType::CONJUNCTION_AND);
 	for (auto &constant_value : constant_values) {
 		if (!constant_value.second.empty()) {
 			auto filter_exp = equivalence_map.end();
@@ -440,18 +440,28 @@ TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_id
 						table_filters.PushFilter(column_index, make_uniq<IsNotNullFilter>());
 					}
 					equivalence_map.erase(filter_exp);
-				} else if (filter_exp->second.size() == 1) {
+				}
+				else if (filter_exp->second.size() == 1) {
+					std::cout << "GenerateTableScanFilters: Adding a complex filter to the combined_filter: " << filter_exp->second[0].get().ToString() << std::endl;
 					// TODO: This might not work for all filters expressions so conditionally execute this code
 					auto equivalence_set = filter_exp->first;
 					auto &constant_list = constant_values.find(equivalence_set)->second;
 					for (idx_t k = 0; k < constant_list.size(); k++) {
-						auto rhs = make_unique<BoundConstantExpression>(constant_value.second[k].constant)->Copy();
+						auto rhs = make_uniq<BoundConstantExpression>(constant_value.second[k].constant)->Copy();
 						auto lhs = filter_exp->second[0].get().Copy();
-						combined_filter.children.push_back(make_unique<BoundComparisonExpression>(constant_value.second[k].comparison_type, std::move(lhs), std::move(rhs)));
+						combined_filter->children.push_back(make_uniq<BoundComparisonExpression>(constant_value.second[k].comparison_type, std::move(lhs), std::move(rhs)));
 					}
 				}
 			}
 		}
+	}
+	auto no_complex_filters = combined_filter->children.size();
+	if (no_complex_filters > 1) {
+		std::cout << "Setting complex_filter in table_filters as " << combined_filter->ToString() << std::endl;
+		table_filters.complex_filter = std::move(combined_filter);
+	} else if (no_complex_filters == 1) {
+		std::cout << "Setting complex_filter in table_filters as " << combined_filter->children[0]->ToString() << std::endl;
+		table_filters.complex_filter = std::move(combined_filter->children[0]);
 	}
 	//! Here we look for LIKE or IN filters
 	for (idx_t rem_fil_idx = 0; rem_fil_idx < remaining_filters.size(); rem_fil_idx++) {

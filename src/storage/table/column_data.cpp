@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "duckdb/storage/table/column_data.hpp"
 
 #include "duckdb/common/vector_operations/vector_operations.hpp"
@@ -202,9 +204,13 @@ idx_t ColumnData::ScanCount(ColumnScanState &state, Vector &result, idx_t count)
 
 void ColumnData::Select(TransactionData transaction, idx_t vector_index, ColumnScanState &state, Vector &result,
                         SelectionVector &sel, idx_t &count, const TableFilter &filter) {
+	std::cout << "ColumnData::Select before scan data \n" << result.ToString(20) << std::endl;
 	idx_t scan_count = Scan(transaction, vector_index, state, result);
+	std::cout << "ColumnData::Select after scan data \n" << result.ToString(20) << std::endl;
 	result.Flatten(scan_count);
+	std::cout << "ColumnData::Select after flatten data \n" << result.ToString(20) << std::endl;
 	ColumnSegment::FilterSelection(sel, result, filter, count, FlatVector::Validity(result));
+	std::cout << "ColumnData::Select after filter data \n" << result.ToString(20) << std::endl;
 }
 
 void ColumnData::FilterScan(TransactionData transaction, idx_t vector_index, ColumnScanState &state, Vector &result,

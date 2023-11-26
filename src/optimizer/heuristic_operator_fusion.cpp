@@ -13,10 +13,6 @@
 using namespace duckdb;
 
 duckdb::unique_ptr<LogicalOperator> HeuristicOperatorFusion::Rewrite(duckdb::unique_ptr<LogicalOperator> &plan) {
-		std::cout << "Called FuseOperators on plan" << std::endl;
-		std::cout << "Current operator is " << LogicalOperatorToString(plan->type) << std::endl;
-		for(auto& c: plan->children) {
-			c = Rewrite(c);
-		}
+		std::cout << "Called FuseOperators on plan\n" << plan->ToString() << std::endl;
 	  return std::move(plan);
 }

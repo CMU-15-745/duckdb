@@ -14,7 +14,7 @@ FilterPushdown::FilterPushdown(Optimizer &optimizer) : optimizer(optimizer), com
 }
 
 unique_ptr<LogicalOperator> FilterPushdown::Rewrite(unique_ptr<LogicalOperator> op) {
-	std::cout << "FilterPushdown called on " << op->ToString() << std::endl;
+	std::cout << "FilterPushdown called on \n" << op->ToString() << std::endl;
 	std::cout << "Current set of filters being pushed down are : " << std::endl;
 	for(auto& f: filters) {
 		std::cout << f->filter->ToString() << std::endl;

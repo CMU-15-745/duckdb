@@ -26,6 +26,7 @@ unique_ptr<TableFilterSet> CreateTableFilterSet(TableFilterSet &table_filters, v
 		}
 		table_filter_set->filters[column_index] = std::move(table_filter.second);
 	}
+	table_filter_set->complex_filter = std::move(table_filters.complex_filter);
 	return table_filter_set;
 }
 

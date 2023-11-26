@@ -4,6 +4,7 @@
 #include "duckdb/execution/execution_context.hpp"
 #include "duckdb/storage/statistics/base_statistics.hpp"
 #include "duckdb/planner/expression/list.hpp"
+#include <iostream>
 
 namespace duckdb {
 
@@ -57,6 +58,7 @@ Allocator &ExpressionExecutor::GetAllocator() {
 void ExpressionExecutor::AddExpression(const Expression &expr) {
 	expressions.push_back(&expr);
 	auto state = make_uniq<ExpressionExecutorState>();
+	std::cout << "Initialize expressions in executor" << std::endl;
 	Initialize(expr, *state);
 	state->Verify();
 	states.push_back(std::move(state));
@@ -64,6 +66,7 @@ void ExpressionExecutor::AddExpression(const Expression &expr) {
 
 void ExpressionExecutor::Initialize(const Expression &expression, ExpressionExecutorState &state) {
 	state.executor = this;
+	std::cout << "Initialize state in executor" << std::endl;
 	state.root_state = InitializeState(expression, state);
 }
 
@@ -142,6 +145,8 @@ void ExpressionExecutor::Verify(const Expression &expr, Vector &vector, idx_t co
 
 unique_ptr<ExpressionState> ExpressionExecutor::InitializeState(const Expression &expr,
                                                                 ExpressionExecutorState &state) {
+	std::cout << "Expr : " << expr.ToString() << " Type: " << ExpressionClassToString(expr.expression_class) << std::endl;
+
 	switch (expr.expression_class) {
 	case ExpressionClass::BOUND_REF:
 		return InitializeState(expr.Cast<BoundReferenceExpression>(), state);
