@@ -139,7 +139,12 @@ string PhysicalTableScan::ParamsToString() const {
 				result += "\n";
 			}
 		}
+		if (table_filters->complex_filter) {
+			result += table_filters->complex_filter->ToString();
+			result += "\n";
+		}
 	}
+
 	if (!extra_info.file_filters.empty()) {
 		result += "\n[INFOSEPARATOR]\n";
 		result += "File Filters: " + extra_info.file_filters;

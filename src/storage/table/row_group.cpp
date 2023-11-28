@@ -449,6 +449,7 @@ void RowGroup::TemplatedScan(TransactionData transaction, CollectionScanState &s
 			// partial scan: we have deletions or table filters
 			idx_t approved_tuple_count = count;
 			SelectionVector sel;
+			SelectionVector complex_sel(STANDARD_VECTOR_SIZE);
 			if (count != max_count) {
 				sel.Initialize(valid_sel);
 			} else {
@@ -459,22 +460,74 @@ void RowGroup::TemplatedScan(TransactionData transaction, CollectionScanState &s
 			auto start_time = high_resolution_clock::now();
 			// TODO: Either simple filters or complex filters or both
 			if (table_filters) {
-				D_ASSERT(adaptive_filter);
 				D_ASSERT(ALLOW_UPDATES);
-				for (idx_t i = 0; i < table_filters->filters.size(); i++) {
-					auto tf_idx = adaptive_filter->permutation[i];
-					auto col_idx = column_ids[tf_idx];
-					auto &col_data = GetColumn(col_idx);
-					col_data.Select(transaction, state.vector_index, state.column_scans[tf_idx], result.data[tf_idx],
-					                sel, approved_tuple_count, *table_filters->filters[tf_idx]);
+				vector<bool> fetched_cols(column_ids.size(), false);
+				if (adaptive_filter) {
+					for (idx_t i = 0; i < table_filters->filters.size(); i++) {
+						auto tf_idx = adaptive_filter->permutation[i];
+						auto col_idx = column_ids[tf_idx];
+						auto &col_data = GetColumn(col_idx);
+						col_data.Select(transaction, state.vector_index, state.column_scans[tf_idx], result.data[tf_idx],
+														sel, approved_tuple_count, *table_filters->filters[tf_idx]);
+						fetched_cols[tf_idx] = true;
+					}
+					/*
+					 * for (auto &table_filter : table_filters->filters) {
+					 *   // result.data[table_filter.first].Slice(sel, approved_tuple_count);
+					 *   std::cout << "Fetched data for simple filter" << "\n" << result.data[table_filter.first].ToString(approved_tuple_count) << std::endl;
+					 * }
+					 */
 				}
-				for (auto &table_filter : table_filters->filters) {
-					result.data[table_filter.first].Slice(sel, approved_tuple_count);
+				auto& complex_filter_cols = table_filters->used_col_ids;
+				if (table_filters->complex_filter) {
+					for(idx_t col_idx = 0; col_idx < column_ids.size(); col_idx++) {
+						if (complex_filter_cols[col_idx]) {
+							if (fetched_cols[col_idx]) {
+								// Already fetched, need to slice so that only the useful data is present
+								result.data[col_idx].Slice(sel, approved_tuple_count);
+								// std::cout << "Cleaned data for column " << col_idx << "\n" << result.data[col_idx].ToString(approved_tuple_count) << "\n" << sel.ToString(approved_tuple_count) << std::endl;
+							} else {
+								// Fetch data from the storage, but only fetch the useful data
+								auto &col_data = GetColumn(column_ids[col_idx]);
+								col_data.FilterScan(transaction, state.vector_index, state.column_scans[col_idx],
+                                    result.data[col_idx], sel, approved_tuple_count);
+								fetched_cols[col_idx] = true;
+								// std::cout << "Fetched additional column data " << col_idx << "\n" << result.data[col_idx].ToString(approved_tuple_count) << "\n" << sel.ToString(approved_tuple_count) << std::endl;
+							}
+						}
+					}
+
+					std::cout << "complex filter starting now : " << table_filters->complex_filter->ToString() << std::endl;
+
+					auto& c = transaction.transaction->context;
+					if (auto tmp = c.lock()) {
+						ExpressionExecutor executor(*tmp, table_filters->complex_filter.get());
+
+						/*
+						 * for (idx_t i = 0; i < column_ids.size(); i++) {
+						 *   if (fetched_cols[i]) {
+						 *     std::cout << "Before execution column data " << i << "\n" << result.data[i].ToString(approved_tuple_count) << "\n" << sel.ToString(approved_tuple_count) << std::endl;
+						 *   }
+						 * }
+						 */
+
+						result.SetCardinality(approved_tuple_count);
+						approved_tuple_count = executor.SelectExpression(result, complex_sel);
+						// std::cout << "complex filter completed now : " << table_filters->complex_filter->ToString() << std::endl;
+						sel = SelectionVector(sel.Slice(complex_sel, approved_tuple_count));
+
+					}
 				}
-				if (!table_filters->complex_filter) {
-					std::cout << "In row group scan, no complex expressions\n" << result.ToString() << std::endl;
-				} else {
-					std::cout << "In row group scan, complex expressions is " << table_filters->complex_filter->ToString() << "\n" << result.ToString() << std::endl;
+				for (idx_t i = 0; i < column_ids.size(); i++) {
+					if (fetched_cols[i]) {
+						if (complex_filter_cols[i]) {
+							result.data[i].Slice(complex_sel, approved_tuple_count);
+						} else {
+							result.data[i].Slice(sel, approved_tuple_count);
+						}
+
+						// std::cout << "After execution column data " << i << "\n" << result.data[i].ToString(approved_tuple_count) << "\n" << std::endl;
+					}
 				}
 			}
 			if (approved_tuple_count == 0) {
@@ -497,7 +550,7 @@ void RowGroup::TemplatedScan(TransactionData transaction, CollectionScanState &s
 			}
 			//! Now we use the selection vector to fetch data for the other columns.
 			for (idx_t i = 0; i < column_ids.size(); i++) {
-				if (!table_filters || table_filters->filters.find(i) == table_filters->filters.end()) {
+				if (!table_filters || (table_filters->filters.find(i) == table_filters->filters.end() && !table_filters->used_col_ids[i])) {
 					auto column = column_ids[i];
 					if (column == COLUMN_IDENTIFIER_ROW_ID) {
 						D_ASSERT(result.data[i].GetType().InternalType() == PhysicalType::INT64);
@@ -518,20 +571,8 @@ void RowGroup::TemplatedScan(TransactionData transaction, CollectionScanState &s
 					}
 				}
 			}
+
 			result.SetCardinality(approved_tuple_count);
-			if (table_filters->complex_filter) {
-				std::cout << "complex filter starting now : " << table_filters->complex_filter->ToString() << std::endl;
-				auto& c = transaction.transaction->context;
-				if (auto tmp = c.lock()) {
-					std::cout << "Creating executor" << std::endl;
-					ExpressionExecutor executor(*tmp, table_filters->complex_filter.get());
-					SelectionVector sel(STANDARD_VECTOR_SIZE);
-					std::cout << "BeforeExecution Data \n" << result.ToString() << "\n" << sel.ToString(approved_tuple_count) << std::endl;
-					executor.SelectExpression(result, sel);
-					std::cout << "AfterExecution Data \n" << result.ToString() << "\n" << sel.ToString(approved_tuple_count) << std::endl;
-					std::cout << "complex filter completed now : " << table_filters->complex_filter->ToString() << std::endl;
-				}
-			}
 
 			auto end_time = high_resolution_clock::now();
 			if (adaptive_filter && table_filters->filters.size() > 1) {

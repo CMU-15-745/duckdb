@@ -392,12 +392,23 @@ bool FilterCombiner::HasFilters() {
 // 	return zonemap_checks;
 // }
 
-TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_ids) {
-	TableFilterSet table_filters;
-	auto combined_filter = make_uniq<BoundConjunctionExpression>(ExpressionType::CONJUNCTION_AND);
+unique_ptr<Expression> FilterCombiner::VisitReplace(BoundColumnRefExpression &ref,
+																										unique_ptr<Expression> *expr_ptr) {
+	referenced_col_ids.insert(ref.binding.column_index);
+	return std::move(*expr_ptr);
+}
 
+TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_ids) {
+	std::cout << "GenerateTableScanFilters: Start" << std::endl;
+	TableFilterSet table_filters(column_ids.size());
+	auto combined_filter = make_uniq<BoundConjunctionExpression>(ExpressionType::CONJUNCTION_AND);
+	// TODO: Improve filter combiner to support more types of comparisions
+	// TODO: Ask why there is not null check in the filter pushdown
+
+	referenced_col_ids.clear();
 	//! First, we figure the filters that have constant expressions that we can push down to the table scan
 	for (auto &constant_value : constant_values) {
+		std::cout << "GenerateTableScanFilters: Constant value filter found" << std::endl;
 		if (!constant_value.second.empty()) {
 			auto filter_exp = equivalence_map.end();
 			if ((constant_value.second[0].comparison_type == ExpressionType::COMPARE_EQUAL ||
@@ -423,9 +434,15 @@ TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_id
 					std::cout << "Filter is single column ref" << std::endl;
 					auto &filter_col_exp = filter_exp->second[0].get().Cast<BoundColumnRefExpression>();
 					auto column_index = column_ids[filter_col_exp.binding.column_index];
+
+					std::cout << "GenerateTableScanFilters: Printing column_ids" << std::endl;
+					for(int i = 0; i < column_ids.size(); i++) {
+						std::cout << i << " " << column_ids[i] << std::endl;
+					}
 					if (column_index == COLUMN_IDENTIFIER_ROW_ID) {
 						break;
 					}
+					std::cout << "Simple Filter adding index " << filter_col_exp.binding.column_index << " " << column_index << std::endl;
 					auto equivalence_set = filter_exp->first;
 					auto &entries = filter_exp->second;
 					auto &constant_list = constant_values.find(equivalence_set)->second;
@@ -444,13 +461,26 @@ TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_id
 				else if (filter_exp->second.size() == 1) {
 					std::cout << "GenerateTableScanFilters: Adding a complex filter to the combined_filter: " << filter_exp->second[0].get().ToString() << std::endl;
 					// TODO: This might not work for all filters expressions so conditionally execute this code
+					// TODO: Cleanup
 					auto equivalence_set = filter_exp->first;
 					auto &constant_list = constant_values.find(equivalence_set)->second;
+					auto expr = filter_exp->second[0].get().Copy();
+					std::cout << "referenced cols are ";
+					for(auto i: referenced_col_ids) {
+						std::cout << i << " " << column_ids[i] << " ";
+					}
+					std::cout << std::endl;
+					VisitExpression(&expr);
+					std::cout << "referenced cols are ";
+					for(auto i: referenced_col_ids) {
+						std::cout << i << " " << column_ids[i] << " ";
+					}
+					std::cout << std::endl;
 					for (idx_t k = 0; k < constant_list.size(); k++) {
 						auto rhs = make_uniq<BoundConstantExpression>(constant_value.second[k].constant)->Copy();
-						auto lhs = filter_exp->second[0].get().Copy();
-						combined_filter->children.push_back(make_uniq<BoundComparisonExpression>(constant_value.second[k].comparison_type, std::move(lhs), std::move(rhs)));
+						combined_filter->children.push_back(make_uniq<BoundComparisonExpression>(constant_value.second[k].comparison_type, expr->Copy(), std::move(rhs)));
 					}
+					equivalence_map.erase(filter_exp);
 				}
 			}
 		}
@@ -463,6 +493,12 @@ TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_id
 		std::cout << "Setting complex_filter in table_filters as " << combined_filter->children[0]->ToString() << std::endl;
 		table_filters.complex_filter = std::move(combined_filter->children[0]);
 	}
+	vector<idx_t> converted_ids;
+	for(auto col_id: referenced_col_ids) {
+		converted_ids.push_back(col_id);
+	}
+	table_filters.SetColumnsIds(converted_ids);
+
 	//! Here we look for LIKE or IN filters
 	for (idx_t rem_fil_idx = 0; rem_fil_idx < remaining_filters.size(); rem_fil_idx++) {
 		auto &remaining_filter = remaining_filters[rem_fil_idx];

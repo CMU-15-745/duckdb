@@ -25,6 +25,7 @@ unique_ptr<LogicalOperator> FilterPushdown::PushdownGet(unique_ptr<LogicalOperat
 			}
 		}
 	}
+	std::cout <<"PushdownGet after invalidation" << std::endl;
 	if (get.function.pushdown_complex_filter) {
 		// for the remaining filters, check if we can push any of them into the scan as well
 		vector<unique_ptr<Expression>> expressions;

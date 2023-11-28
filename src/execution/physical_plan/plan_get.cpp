@@ -7,6 +7,8 @@
 #include "duckdb/planner/expression/bound_reference_expression.hpp"
 #include "duckdb/planner/operator/logical_get.hpp"
 
+#include <iostream>
+
 namespace duckdb {
 
 unique_ptr<TableFilterSet> CreateTableFilterSet(TableFilterSet &table_filters, vector<column_t> &column_ids) {
@@ -27,6 +29,7 @@ unique_ptr<TableFilterSet> CreateTableFilterSet(TableFilterSet &table_filters, v
 		table_filter_set->filters[column_index] = std::move(table_filter.second);
 	}
 	table_filter_set->complex_filter = std::move(table_filters.complex_filter);
+	table_filter_set->used_col_ids = std::move(table_filters.used_col_ids);
 	return table_filter_set;
 }
 
@@ -44,7 +47,7 @@ unique_ptr<PhysicalOperator> PhysicalPlanGenerator::CreatePlan(LogicalGet &op) {
 	}
 
 	unique_ptr<TableFilterSet> table_filters;
-	if (!op.table_filters.filters.empty()) {
+	if (!op.table_filters.filters.empty() || op.table_filters.complex_filter) {
 		table_filters = CreateTableFilterSet(op.table_filters, op.column_ids);
 	}
 

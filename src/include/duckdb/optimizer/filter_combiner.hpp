@@ -30,7 +30,7 @@ enum class FilterResult { UNSATISFIABLE, SUCCESS, UNSUPPORTED };
 //! (1) it prunes obsolete filter conditions: i.e. [X > 5 and X > 7] => [X > 7]
 //! (2) it generates new filters for expressions in the same equivalence set: i.e. [X = Y and X = 500] => [Y = 500]
 //! (3) it prunes branches that have unsatisfiable filters: i.e. [X = 5 AND X > 6] => FALSE, prune branch
-class FilterCombiner {
+class FilterCombiner : private LogicalOperatorVisitor {
 public:
 	explicit FilterCombiner(ClientContext &context);
 	explicit FilterCombiner(Optimizer &optimizer);
@@ -94,7 +94,11 @@ private:
 	//	}
 
 private:
+	unique_ptr<Expression> VisitReplace(BoundColumnRefExpression &ref, unique_ptr<Expression> *expr_ptr) override;
+
 	vector<unique_ptr<Expression>> remaining_filters;
+
+	unordered_set<idx_t> referenced_col_ids;
 
 	expression_map_t<unique_ptr<Expression>> stored_expressions;
 	expression_map_t<idx_t> equivalence_set_map;

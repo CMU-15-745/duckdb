@@ -11,8 +11,7 @@ namespace duckdb {
 void TableScanState::Initialize(vector<column_t> column_ids, TableFilterSet *table_filters) {
 	this->column_ids = std::move(column_ids);
 	this->table_filters = table_filters;
-	if (table_filters) {
-		D_ASSERT(table_filters->filters.size() > 0);
+	if (table_filters != nullptr && table_filters->filters.size() > 0) {
 		this->adaptive_filter = make_uniq<AdaptiveFilter>(table_filters);
 	}
 }
@@ -23,7 +22,7 @@ const vector<column_t> &TableScanState::GetColumnIds() {
 }
 
 TableFilterSet *TableScanState::GetFilters() {
-	D_ASSERT(!table_filters || adaptive_filter.get());
+	D_ASSERT(!table_filters || adaptive_filter.get() || table_filters->complex_filter);
 	return table_filters;
 }
 

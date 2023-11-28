@@ -70,19 +70,17 @@ class TableFilterSet {
 public:
 	unordered_map<idx_t, unique_ptr<TableFilter>> filters;
 	unique_ptr<Expression> complex_filter;
-	// TODO: Update this correctly in the GenerateTableScanFilters
-	// vector<bool> used_col_ids;
+	vector<bool> used_col_ids;
 
 public:
 	TableFilterSet(): complex_filter(nullptr) { }
-	// void SetColumnsIds(vector<idx_t>& col_ids) {
-	//   auto max_element_it = std::max_element(col_ids.begin(), col_ids.end());
-	//   if (max_element_it == col_ids.end()) {
-	//     used_col_ids.resize(0);
-	//   } else {
-	//     used_col_ids.resize(*max_element_it + 1);
-	//   }
-	// }
+	TableFilterSet(int no_cols): complex_filter(nullptr) { used_col_ids.resize(no_cols); }
+	void SetColumnsIds(vector<idx_t> col_ids) {
+		for(auto col_id: col_ids) {
+			D_ASSERT(used_col_ids.size() > col_id);
+			used_col_ids[col_id] = true;
+		}
+	}
 
 	void PushFilter(idx_t table_index, unique_ptr<TableFilter> filter);
 
