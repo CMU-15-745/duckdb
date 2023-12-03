@@ -12,7 +12,7 @@
 #include "duckdb/storage/buffer_manager.hpp"
 
 
-bool disable_caching = true;
+bool disable_operator_buffering = true;
 
 namespace duckdb {
 
@@ -255,7 +255,7 @@ OperatorResultType CachingPhysicalOperator::Execute(ExecutionContext &context, D
 
 	// Execute child operator
 	auto child_result = ExecuteInternal(context, input, chunk, gstate, state);
-	if (disable_caching) {
+	if (disable_operator_buffering) {
 		return child_result;
 	}
 

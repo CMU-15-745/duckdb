@@ -23,6 +23,8 @@
 #include "duckdb/execution/operator/filter/physical_filter.hpp"
 #include <iostream>
 
+bool disable_scan_buffering = false;
+
 namespace duckdb {
 
 RowGroup::RowGroup(RowGroupCollection &collection, idx_t start, idx_t count)
@@ -601,17 +603,7 @@ void RowGroup::TemplatedScan(TransactionData transaction, CollectionScanState &s
 			D_ASSERT(approved_tuple_count > 0);
 			count = approved_tuple_count;
 
-			if (approved_tuple_count < caching_threshold) {
-				// std::cout << "Little data generated, cache and try again" << approved_tuple_count << std::endl;
-				// Add to cache
-				// std::cout << "Cached types " << std::endl;
-				// for(auto t: cached_data.GetTypes()) {
-				//   std::cout << LogicalTypeIdToString(t.id()) << std::endl;
-				// }
-				// std::cout << "Result types " << std::endl;
-				// for(auto t: result.GetTypes()) {
-				//   std::cout << LogicalTypeIdToString(t.id()) << std::endl;
-				// }
+			if (!disable_scan_buffering && approved_tuple_count < caching_threshold) {
 				cached_data.Append(result, cached_data.size());
 				result.Reset();
 				state.vector_index++;
