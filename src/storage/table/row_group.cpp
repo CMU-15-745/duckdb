@@ -25,6 +25,9 @@
 
 bool disable_scan_buffering = false;
 
+// Note: Should be less than 0.5 to have any benefits
+double caching_threshold = 0.1;
+
 namespace duckdb {
 
 RowGroup::RowGroup(RowGroupCollection &collection, idx_t start, idx_t count)
@@ -401,11 +404,12 @@ void RowGroup::TemplatedScan(TransactionData transaction, CollectionScanState &s
 	auto adaptive_filter = state.GetAdaptiveFilter();
 	auto& cached_data = state.cached_data;
 
-	size_t caching_threshold = STANDARD_VECTOR_SIZE / 4;
+	size_t threshold_buffer_size = floorl(STANDARD_VECTOR_SIZE * caching_threshold);
+	size_t max_threshold_buffer_size = STANDARD_VECTOR_SIZE - threshold_buffer_size;
 
 	while (true) {
 		// std::cout << "Checking the cached data size " << cached_data.size() << std::endl;
-		if (cached_data.size() > 3 * caching_threshold) {
+		if (cached_data.size() > max_threshold_buffer_size) {
 			// std::cout << "Cache has enough data using that " << std::endl;
 			cached_data.Copy(result);
 			cached_data.Reset();
@@ -603,7 +607,7 @@ void RowGroup::TemplatedScan(TransactionData transaction, CollectionScanState &s
 			D_ASSERT(approved_tuple_count > 0);
 			count = approved_tuple_count;
 
-			if (!disable_scan_buffering && approved_tuple_count < caching_threshold) {
+			if (!disable_scan_buffering && approved_tuple_count < threshold_buffer_size) {
 				cached_data.Append(result, cached_data.size());
 				result.Reset();
 				state.vector_index++;

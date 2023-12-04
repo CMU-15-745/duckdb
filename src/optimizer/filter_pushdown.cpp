@@ -7,7 +7,7 @@
 #include <iostream>
 
 bool disable_filter_pushdown = false;
-bool disable_filter_pushdown_get = true;
+bool disable_filter_pushdown_get = false;
 
 namespace duckdb {
 

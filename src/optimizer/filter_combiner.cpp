@@ -16,6 +16,8 @@
 #include "duckdb/optimizer/optimizer.hpp"
 #include <iostream>
 
+bool disable_complex_fusion = false;
+
 namespace duckdb {
 
 using ExpressionValueInformation = FilterCombiner::ExpressionValueInformation;
@@ -444,7 +446,7 @@ TableFilterSet FilterCombiner::GenerateTableScanFilters(vector<idx_t> &column_id
 					}
 					equivalence_map.erase(filter_exp);
 				}
-				else if (filter_exp->second.size() == 1) {
+				else if (!disable_complex_fusion && filter_exp->second.size() == 1) {
 					// TODO: This might not work for all filters expressions so conditionally execute this code
 					auto equivalence_set = filter_exp->first;
 					auto &constant_list = constant_values.find(equivalence_set)->second;
