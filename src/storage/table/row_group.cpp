@@ -348,6 +348,7 @@ void RowGroup::NextVector(CollectionScanState &state) {
 }
 
 bool RowGroup::CheckZonemap(TableFilterSet &filters, const vector<storage_t> &column_ids) {
+	return true;
 	for (auto &entry : filters.filters) {
 		auto column_index = entry.first;
 		auto &filter = entry.second;
@@ -360,6 +361,7 @@ bool RowGroup::CheckZonemap(TableFilterSet &filters, const vector<storage_t> &co
 }
 
 bool RowGroup::CheckZonemapSegments(CollectionScanState &state) {
+	return true;
 	auto &column_ids = state.GetColumnIds();
 	auto filters = state.GetFilters();
 	if (!filters) {

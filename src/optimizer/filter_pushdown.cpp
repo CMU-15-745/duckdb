@@ -6,7 +6,7 @@
 #include "duckdb/optimizer/optimizer.hpp"
 #include <iostream>
 
-bool disable_filter_pushdown = false;
+bool disable_filter_pushdown = true;
 bool disable_filter_pushdown_get = false;
 
 namespace duckdb {
@@ -152,11 +152,15 @@ unique_ptr<LogicalOperator> FilterPushdown::AddLogicalFilter(unique_ptr<LogicalO
 
 unique_ptr<LogicalOperator> FilterPushdown::PushFinalFilters(unique_ptr<LogicalOperator> op) {
 	vector<unique_ptr<Expression>> expressions;
+	std::cout <<"Filters are " << std::endl;
 	for (auto &f : filters) {
-		expressions.push_back(std::move(f->filter));
+		std::cout << f->filter->ToString() << std::endl;
+		vector<unique_ptr<Expression>> v;
+		v.push_back(std::move(f->filter));
+		op = AddLogicalFilter(std::move(op), std::move(v));
 	}
 
-	return AddLogicalFilter(std::move(op), std::move(expressions));
+	return op;
 }
 
 unique_ptr<LogicalOperator> FilterPushdown::FinishPushdown(unique_ptr<LogicalOperator> op) {

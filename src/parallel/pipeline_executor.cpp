@@ -413,17 +413,9 @@ OperatorResultType PipelineExecutor::Execute(DataChunk &input, DataChunk &result
 			current_chunk.Verify();
 		}
 
-		if (current_chunk.size() == 0) {
+		if (current_chunk.size() == 0 && current_idx == initial_idx) {
 			// no output from this operator!
-			if (current_idx == initial_idx) {
-				// if we got no output from the scan, we are done
-				break;
-			} else {
-				// if we got no output from an intermediate op
-				// we go back and try to pull data from the source again
-				GoToSource(current_idx, initial_idx);
-				continue;
-			}
+			break;
 		} else {
 			// we got output! continue to the next operator
 			current_idx++;
