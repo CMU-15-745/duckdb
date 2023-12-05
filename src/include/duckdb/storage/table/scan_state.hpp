@@ -14,6 +14,7 @@
 #include "duckdb/common/enums/scan_options.hpp"
 #include "duckdb/execution/adaptive_filter.hpp"
 #include "duckdb/storage/table/segment_lock.hpp"
+#include "duckdb/execution/expression_executor.hpp"
 
 namespace duckdb {
 class ColumnSegment;
@@ -130,6 +131,7 @@ public:
 	idx_t batch_index;
 
 	DataChunk cached_data;
+	unique_ptr<ExpressionExecutor> executor;
 
 public:
 	void Initialize(const vector<LogicalType> &types);

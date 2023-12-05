@@ -523,25 +523,19 @@ void RowGroup::TemplatedScan(TransactionData transaction, CollectionScanState &s
 
 					// std::cout << "complex filter starting now : " << table_filters->complex_filter->ToString() << std::endl;
 
-					auto& c = transaction.transaction->context;
-					if (auto tmp = c.lock()) {
-						ExpressionExecutor executor(*tmp, table_filters->complex_filter.get());
-
-						/*
-						 * for (idx_t i = 0; i < column_ids.size(); i++) {
-						 *   if (fetched_cols[i]) {
-						 *     std::cout << "Before execution column data " << i << "\n" << result.data[i].ToString(approved_tuple_count) << "\n" << sel.ToString(approved_tuple_count) << std::endl;
-						 *   }
-						 * }
-						 */
-
-						result.SetCardinality(approved_tuple_count);
-						approved_tuple_count = executor.SelectExpression(result, complex_sel);
-						// std::cout << "complex filter completed now : " << table_filters->complex_filter->ToString() << std::endl;
-						sel = SelectionVector(sel.Slice(complex_sel, approved_tuple_count));
-
+					if (!state.executor) {
+						auto& c = transaction.transaction->context;
+						if (auto tmp = c.lock()) {
+							state.executor = make_uniq<ExpressionExecutor>(*tmp, table_filters->complex_filter.get());
+						}
 					}
+					D_ASSERT(state.executor);
+					result.SetCardinality(approved_tuple_count);
+					approved_tuple_count = state.executor->SelectExpression(result, complex_sel);
+					// std::cout << "complex filter completed now : " << table_filters->complex_filter->ToString() << std::endl;
+					sel = SelectionVector(sel.Slice(complex_sel, approved_tuple_count));
 				}
+
 				for (idx_t i = 0; i < column_ids.size(); i++) {
 					if (fetched_cols[i]) {
 						if (complex_filter_cols[i]) {

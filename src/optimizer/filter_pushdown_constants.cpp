@@ -2,7 +2,7 @@
 #include "filter_pushdown_constants.hpp"
 
 // Note: Only set these flags
-bool filter_pushdown_flag = true;
+bool filter_pushdown_flag = false;
 bool filter_fusion_flag = true;
 bool scan_buffering_flag = true;
 
