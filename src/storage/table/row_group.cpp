@@ -22,11 +22,7 @@
 #include "duckdb/common/serializer/binary_serializer.hpp"
 #include "duckdb/execution/operator/filter/physical_filter.hpp"
 #include <iostream>
-
-bool disable_scan_buffering = false;
-
-// Note: Should be less than 0.5 to have any benefits
-double caching_threshold = 0.1;
+#include "../optimizer/filter_pushdown_constants.hpp"
 
 namespace duckdb {
 

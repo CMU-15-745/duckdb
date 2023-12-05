@@ -5,9 +5,7 @@
 #include "duckdb/planner/operator/logical_join.hpp"
 #include "duckdb/optimizer/optimizer.hpp"
 #include <iostream>
-
-bool disable_filter_pushdown = true;
-bool disable_filter_pushdown_get = false;
+#include "filter_pushdown_constants.hpp"
 
 namespace duckdb {
 
@@ -17,17 +15,6 @@ FilterPushdown::FilterPushdown(Optimizer &optimizer) : optimizer(optimizer), com
 }
 
 unique_ptr<LogicalOperator> FilterPushdown::Rewrite(unique_ptr<LogicalOperator> op) {
-	if (disable_filter_pushdown) {
-		std::cout << "Optimizer:FilterPushDown:disabled\n";
-		return std::move(op);
-	} else {
-		std::cout << "Optimizer:FilterPushDown:enabled\n";
-	}
-	if (disable_filter_pushdown_get) {
-		std::cout << "Optimizer:FilterFusion:disabled\n";
-	} else {
-		std::cout << "Optimizer:FilterFusion:enabled\n";
-	}
 
 	D_ASSERT(!combiner.HasFilters());
 	switch (op->type) {
@@ -56,7 +43,7 @@ unique_ptr<LogicalOperator> FilterPushdown::Rewrite(unique_ptr<LogicalOperator> 
 		return op;
 	}
 	case LogicalOperatorType::LOGICAL_GET: {
-		if (disable_filter_pushdown_get) {
+		if (disable_filter_fusion) {
 			return FinishPushdown(std::move(op));
 		} else {
 			return PushdownGet(std::move(op));

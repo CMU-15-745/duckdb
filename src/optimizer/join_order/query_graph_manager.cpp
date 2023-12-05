@@ -8,6 +8,7 @@
 #include "duckdb/common/printer.hpp"
 #include "duckdb/common/string_util.hpp"
 #include "duckdb/common/assert.hpp"
+#include "../filter_pushdown_constants.hpp"
 
 namespace duckdb {
 
@@ -58,19 +59,30 @@ const vector<unique_ptr<FilterInfo>> &QueryGraphManager::GetFilterBindings() con
 }
 
 static unique_ptr<LogicalOperator> PushFilter(unique_ptr<LogicalOperator> node, unique_ptr<Expression> expr) {
-	// push an expression into a filter
-	// first check if we have any filter to push it into
-	if (node->type != LogicalOperatorType::LOGICAL_FILTER) {
-		// we don't, we need to create one
+	if (disable_filter_fusion) {
 		auto filter = make_uniq<LogicalFilter>();
 		filter->children.push_back(std::move(node));
 		node = std::move(filter);
+		// push the filter into the LogicalFilter
+		D_ASSERT(node->type == LogicalOperatorType::LOGICAL_FILTER);
+		auto &new_filter = node->Cast<LogicalFilter>();
+		new_filter.expressions.push_back(std::move(expr));
+		return node;
+	} else {
+		// push an expression into a filter
+		// first check if we have any filter to push it into
+		if (node->type != LogicalOperatorType::LOGICAL_FILTER) {
+			// we don't, we need to create one
+			auto filter = make_uniq<LogicalFilter>();
+			filter->children.push_back(std::move(node));
+			node = std::move(filter);
+		}
+		// push the filter into the LogicalFilter
+		D_ASSERT(node->type == LogicalOperatorType::LOGICAL_FILTER);
+		auto &filter = node->Cast<LogicalFilter>();
+		filter.expressions.push_back(std::move(expr));
+		return node;
 	}
-	// push the filter into the LogicalFilter
-	D_ASSERT(node->type == LogicalOperatorType::LOGICAL_FILTER);
-	auto &filter = node->Cast<LogicalFilter>();
-	filter.expressions.push_back(std::move(expr));
-	return node;
 }
 
 void QueryGraphManager::CreateHyperGraphEdges() {
@@ -211,7 +223,7 @@ GenerateJoinRelation QueryGraphManager::GenerateJoins(vector<unique_ptr<LogicalO
 		if (filters_and_bindings[info.filter_index]->filter) {
 			// now check if the filter is a subset of the current relation
 			// note that infos with an empty relation set are a special case and we do not push them down
-			if (info.set.count > 0 && JoinRelationSet::IsSubset(*result_relation, info.set)) {
+			if (info.set.count > 0 && JoinRelationSet::IsSubset(*result_relation, info.set) && !disable_filter_pushdown) {
 				auto &filter_and_binding = filters_and_bindings[info.filter_index];
 				auto filter = std::move(filter_and_binding->filter);
 				// if it is, we can push the filter

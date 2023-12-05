@@ -98,10 +98,10 @@ unique_ptr<LogicalOperator> Optimizer::Optimize(unique_ptr<LogicalOperator> plan
 	});
 
 	// perform filter pullup
-	// RunOptimizer(OptimizerType::FILTER_PULLUP, [&]() {
-	//   FilterPullup filter_pullup;
-	//   plan = filter_pullup.Rewrite(std::move(plan));
-	// });
+	RunOptimizer(OptimizerType::FILTER_PULLUP, [&]() {
+		FilterPullup filter_pullup;
+		plan = filter_pullup.Rewrite(std::move(plan));
+	});
 
 	// perform filter pushdown
 	RunOptimizer(OptimizerType::FILTER_PUSHDOWN, [&]() {

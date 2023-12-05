@@ -11,6 +11,7 @@
 #include "duckdb/planner/operator/logical_join.hpp"
 #include "duckdb/planner/operator/logical_limit.hpp"
 #include "duckdb/planner/operator/logical_positional_join.hpp"
+#include <iostream>
 
 namespace duckdb {
 
@@ -349,6 +350,9 @@ void StatisticsPropagator::CreateFilterFromJoinStats(unique_ptr<LogicalOperator>
 	}
 
 	FilterPushdown filter_pushdown(optimizer);
+	std::cout << "JoinOptimizer" << std::endl;
+	std::cout << "Called FilterPushdown on " << std::endl;
+	child->Print();
 	child = filter_pushdown.Rewrite(std::move(child));
 	PropagateExpression(expr);
 }
