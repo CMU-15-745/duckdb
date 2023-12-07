@@ -1,4 +1,4 @@
--- Simple filter push-down
+-- Simple filter push-down + fusion (low selectivity)
 
 EXPLAIN ANALYZE select * from artist a inner join artist_credit_name ar on a.id = ar.artist_credit where begin_date_month = 1;
 

@@ -1,4 +1,4 @@
--- Complex query with multiple simple filter fusion (low selectivity)
+-- Complex query with multiple complex filter fusion (low selectivity)
 
 
 EXPLAIN ANALYZE select * from artist where name like 'Michael%' and length(comment)=4;
