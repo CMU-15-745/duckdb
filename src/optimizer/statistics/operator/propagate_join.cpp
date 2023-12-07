@@ -350,9 +350,9 @@ void StatisticsPropagator::CreateFilterFromJoinStats(unique_ptr<LogicalOperator>
 	}
 
 	FilterPushdown filter_pushdown(optimizer);
-	std::cout << "JoinOptimizer" << std::endl;
-	std::cout << "Called FilterPushdown on " << std::endl;
-	child->Print();
+//	std::cout << "JoinOptimizer" << std::endl;
+//	std::cout << "Called FilterPushdown on " << std::endl;
+//	child->Print();
 	child = filter_pushdown.Rewrite(std::move(child));
 	PropagateExpression(expr);
 }

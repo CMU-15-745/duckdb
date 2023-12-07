@@ -139,7 +139,7 @@ unique_ptr<LogicalOperator> FilterPushdown::AddLogicalFilter(unique_ptr<LogicalO
 
 unique_ptr<LogicalOperator> FilterPushdown::PushFinalFilters(unique_ptr<LogicalOperator> op) {
 	vector<unique_ptr<Expression>> expressions;
-	std::cout <<"Filters are " << std::endl;
+//	std::cout <<"Filters are " << std::endl;
 	for (auto &f : filters) {
 		std::cout << f->filter->ToString() << std::endl;
 		vector<unique_ptr<Expression>> v;

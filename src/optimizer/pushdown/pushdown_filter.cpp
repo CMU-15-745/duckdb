@@ -22,12 +22,12 @@ unique_ptr<LogicalOperator> FilterPushdown::PushdownFilter(unique_ptr<LogicalOpe
 		}
 		auto child_op = Rewrite(std::move(filter.children[0]));
 		for (auto &expr: exprs) {
-			std::cout  << "Got expr " << expr->ToString() << std::endl;
+//			std::cout  << "Got expr " << expr->ToString() << std::endl;
 			vector<unique_ptr<Expression>> v;
 			v.push_back(std::move(expr));
 			child_op = AddLogicalFilter(std::move(child_op), std::move(v));
 		}
-		child_op->Print();
+//		child_op->Print();
 		return child_op;
 	} else {
 		for (auto &expression : filter.expressions) {
