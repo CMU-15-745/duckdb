@@ -1,4 +1,4 @@
--- List top 10 countries with the most classical music artists (born or started before 1850) along
+-- List top countries with the most classical music artists (born or started before 1850) along
 -- with the number of associated artists.
 
 explain analyze select

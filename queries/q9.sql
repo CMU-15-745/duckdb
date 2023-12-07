@@ -9,6 +9,3 @@ EXPLAIN ANALYZE select * from artist where length(name) < 24 and id < 2000000;
 -- fpd_ff:          0.0215s
 -- fpd_ff_sb_0.3:   0.0214s
 
-
-0.0165s
-0.0177s
